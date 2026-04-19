@@ -118,7 +118,8 @@ import { html } from 'https://esm.sh/htm@3.1.1/preact?external=preact';
 function hrCol(hr){return hr<95?'var(--green)':hr<110?'var(--gold)':'var(--red)';}
 function zoneName(z){return ['','Recovery','Base Aerobic','Aerobic','Threshold','Max'][z]||'?';}
 function hrZoneFrom(hr){var h=Number(hr);if(!h)return 2;if(h<85)return 1;if(h<100)return 2;if(h<115)return 3;if(h<140)return 4;return 5;}
-function todayISO(){return new Date().toLocaleDateString('en-CA');}
+function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function isoOf(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function fmtLabel(iso){var d=new Date(iso+'T12:00:00');return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 function calcVol(sets){return sets.reduce(function(s,x){return s+(x.weight||0)*(typeof x.reps==='number'?x.reps:0);},0);}
@@ -269,9 +270,9 @@ function calcStreak(str,car){
   if(!all.length)return 0;
   var dates=new Set(all.map(function(s){return s.date;}));
   var d=new Date();
-  if(!dates.has(d.toLocaleDateString('en-CA')))d.setDate(d.getDate()-1);
+  if(!dates.has(isoOf(d)))d.setDate(d.getDate()-1);
   var n=0;
-  for(var i=0;i<365;i++){var iso=d.toLocaleDateString('en-CA');if(!dates.has(iso))break;n++;d.setDate(d.getDate()-1);}
+  for(var i=0;i<365;i++){if(!dates.has(isoOf(d)))break;n++;d.setDate(d.getDate()-1);}
   return n;
 }
 
@@ -1211,15 +1212,16 @@ function App(){
     var strL=[],carL=[];
     var p1=dbGetAll('strength').then(function(d){strL=d;}).catch(function(){strL=[];});
     var p2=dbGetAll('cardio').then(function(d){carL=d;}).catch(function(){carL=[];});
+    var sortF=function(a,b){return a.date<b.date?1:-1;};
+    function finish(){setStrSessions(strL.sort(sortF));setCarSessions(carL.sort(sortF));setReady(true);}
     Promise.all([p1,p2]).then(function(){
       if(!strL.length){strL=SEED_STR.slice();return Promise.all(SEED_STR.map(function(s){return dbPut('strength',s);})).then(function(){});}
     }).then(function(){
       if(!carL.length){carL=SEED_CAR.slice();return Promise.all(SEED_CAR.map(function(s){return dbPut('cardio',s);})).then(function(){});}
-    }).then(function(){
-      var sortF=function(a,b){return a.date<b.date?1:-1;};
-      setStrSessions(strL.sort(sortF));
-      setCarSessions(carL.sort(sortF));
-      setReady(true);
+    }).then(finish).catch(function(){
+      if(!strL.length)strL=SEED_STR.slice();
+      if(!carL.length)carL=SEED_CAR.slice();
+      finish();
     });
     function onOnline(){drainSyncQueue();}
     window.addEventListener('online',onOnline);
