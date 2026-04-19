@@ -1212,13 +1212,15 @@ function App(){
     var p1=dbGetAll('strength').then(function(d){strL=d;}).catch(function(){strL=[];});
     var p2=dbGetAll('cardio').then(function(d){carL=d;}).catch(function(){carL=[];});
     Promise.all([p1,p2]).then(function(){
-      if(!strL.length){strL=SEED_STR.slice();return Promise.all(SEED_STR.map(function(s){return dbPut('strength',s);})).then(function(){});}
+      if(!strL.length){strL=SEED_STR.slice();return Promise.all(SEED_STR.map(function(s){return dbPut('strength',s).catch(function(){});}));}
     }).then(function(){
-      if(!carL.length){carL=SEED_CAR.slice();return Promise.all(SEED_CAR.map(function(s){return dbPut('cardio',s);})).then(function(){});}
+      if(!carL.length){carL=SEED_CAR.slice();return Promise.all(SEED_CAR.map(function(s){return dbPut('cardio',s).catch(function(){});}));}
     }).then(function(){
       var sortF=function(a,b){return a.date<b.date?1:-1;};
       setStrSessions(strL.sort(sortF));
       setCarSessions(carL.sort(sortF));
+      setReady(true);
+    }).catch(function(){
       setReady(true);
     });
     function onOnline(){drainSyncQueue();}
