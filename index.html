@@ -118,7 +118,7 @@ import { html } from 'https://esm.sh/htm@3.1.1/preact?external=preact';
 function hrCol(hr){return hr<95?'var(--green)':hr<110?'var(--gold)':'var(--red)';}
 function zoneName(z){return ['','Recovery','Base Aerobic','Aerobic','Threshold','Max'][z]||'?';}
 function hrZoneFrom(hr){var h=Number(hr);if(!h)return 2;if(h<85)return 1;if(h<100)return 2;if(h<115)return 3;if(h<140)return 4;return 5;}
-function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function todayISO(){return new Date().toLocaleDateString('en-CA');}
 function fmtLabel(iso){var d=new Date(iso+'T12:00:00');return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 function calcVol(sets){return sets.reduce(function(s,x){return s+(x.weight||0)*(typeof x.reps==='number'?x.reps:0);},0);}
@@ -263,6 +263,17 @@ var EXERCISE_LIB={
 };
 var CARDIO_TYPES=['Run','Walk / Hike','Cycle','Row','Swim','Strength Training','HIIT','Other'];
 var EFFORT_LBL=['','Very Easy','Easy','Moderate','Moderate','Hard','Hard','Very Hard','Very Hard','Max','Max'];
+var ALL_EXERCISES=Object.values(EXERCISE_LIB).flat();
+function calcStreak(str,car){
+  var all=str.concat(car);
+  if(!all.length)return 0;
+  var dates=new Set(all.map(function(s){return s.date;}));
+  var d=new Date();
+  if(!dates.has(d.toLocaleDateString('en-CA')))d.setDate(d.getDate()-1);
+  var n=0;
+  for(var i=0;i<365;i++){var iso=d.toLocaleDateString('en-CA');if(!dates.has(iso))break;n++;d.setDate(d.getDate()-1);}
+  return n;
+}
 
 // ── BODY MAP (Fitify-style SVG) ──────────────────────────────────────────────
 function BodyMap(props){
@@ -370,14 +381,10 @@ function StrengthForm(props){
     ${blocks.map(function(block,bi){return html`
       <div style="background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px">
         <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
-          <select class="inp" style="flex:1" value=${block.name} onchange=${(e)=>updName(bi,e.target.value)}>
-            <option value="">— Select exercise —</option>
-            ${Object.keys(EXERCISE_LIB).map(function(cat){return html`<optgroup label=${cat}>${EXERCISE_LIB[cat].map(function(ex){return html`<option value=${ex}>${ex}</option>`;})}</optgroup>`;})}
-            <option value=${block.name&&!Object.values(EXERCISE_LIB).flat().includes(block.name)?block.name:''} selected=${block.name&&!Object.values(EXERCISE_LIB).flat().includes(block.name)}>${block.name&&!Object.values(EXERCISE_LIB).flat().includes(block.name)?block.name:''}</option>
-          </select>
+          <input list=${'exlib-'+bi} type="text" class="inp" style="flex:1" value=${block.name} oninput=${(e)=>updName(bi,e.target.value)} placeholder="Exercise name…"/>
+          <datalist id=${'exlib-'+bi}>${ALL_EXERCISES.map(function(ex){return html`<option value=${ex}/>`; })}</datalist>
           <button class="btn-sm" style="background:rgba(248,113,113,0.15);color:var(--red)" onclick=${()=>removeBlock(bi)}>×</button>
         </div>
-        <input type="text" class="inp" style="margin-bottom:8px" value=${block.name} oninput=${(e)=>updName(bi,e.target.value)} placeholder="Or type custom exercise name"/>
         ${block.sets.map(function(set,si){return html`
           <div style="display:grid;grid-template-columns:28px 1fr 1fr 32px;gap:6px;margin-bottom:6px;align-items:center">
             <div style="color:var(--mu);font-size:12px;text-align:center">${si+1}</div>
@@ -403,6 +410,7 @@ function CardioForm(props){
   var mhrs=useState('');var cMaxHR=mhrs[0];var setCMaxHR=mhrs[1];
   var elevs=useState('');var cElev=elevs[0];var setCElev=elevs[1];
   var kcals=useState('');var cKcal=kcals[0];var setCKcal=kcals[1];
+  var aktS=useState('');var cAktKcal=aktS[0];var setCActKcal=aktS[1];
   var effs=useState(5);var cEff=effs[0];var setCEff=effs[1];
   var sv=useState(false);var saving=sv[0];var setSaving=sv[1];
   var es=useState('');var err=es[0];var setErr=es[1];
@@ -413,7 +421,7 @@ function CardioForm(props){
     if(!cDur){setErr('Duration required');return;}
     var distNum=parseFloat(cDist)||0,hrNum=parseInt(cAvgHR)||0;
     setSaving(true);
-    var sess={id:uid(),date:cd,label:fmtLabel(cd),type:ct,duration:cDur,distanceKm:distNum,elevationM:parseInt(cElev)||0,avgPace:'-',avgHR:hrNum,maxHR:parseInt(cMaxHR)||0,activeKcal:parseInt(cKcal)||0,totalKcal:parseInt(cKcal)||0,effortScore:cEff,effortLabel:EFFORT_LBL[cEff]||'Moderate',hrZone:hrZoneFrom(hrNum),splits:[]};
+    var sess={id:uid(),date:cd,label:fmtLabel(cd),type:ct,duration:cDur,distanceKm:distNum,elevationM:parseInt(cElev)||0,avgPace:'-',avgHR:hrNum,maxHR:parseInt(cMaxHR)||0,activeKcal:parseInt(cAktKcal)||parseInt(cKcal)||0,totalKcal:parseInt(cKcal)||0,effortScore:cEff,effortLabel:EFFORT_LBL[cEff]||'Moderate',hrZone:hrZoneFrom(hrNum),splits:[]};
     props.onSave(sess).catch(function(){setErr('Save failed');setSaving(false);});
   }
 
@@ -431,10 +439,11 @@ function CardioForm(props){
       <div><label class="lbl">km</label><input type="number" class="inp" value=${cDist} oninput=${(e)=>setCDist(e.target.value)} placeholder="7.21"/></div>
       <div><label class="lbl">Elev m</label><input type="number" class="inp" value=${cElev} oninput=${(e)=>setCElev(e.target.value)} placeholder="62"/></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
       <div><label class="lbl">Avg HR</label><input type="number" class="inp" value=${cAvgHR} oninput=${(e)=>setCAvgHR(e.target.value)} placeholder="145"/></div>
       <div><label class="lbl">Max HR</label><input type="number" class="inp" value=${cMaxHR} oninput=${(e)=>setCMaxHR(e.target.value)} placeholder="162"/></div>
-      <div><label class="lbl">kcal</label><input type="number" class="inp" value=${cKcal} oninput=${(e)=>setCKcal(e.target.value)} placeholder="612"/></div>
+      <div><label class="lbl">Total kcal</label><input type="number" class="inp" value=${cKcal} oninput=${(e)=>setCKcal(e.target.value)} placeholder="612"/></div>
+      <div><label class="lbl">Active kcal</label><input type="number" class="inp" value=${cAktKcal} oninput=${(e)=>setCActKcal(e.target.value)} placeholder="532"/></div>
     </div>
     <div style="margin-bottom:14px">
       <label class="lbl">Effort ${cEff}/10 — ${EFFORT_LBL[cEff]}</label>
@@ -680,10 +689,11 @@ function ProgressScreen(props){
   var str=props.strSessions,car=props.carSessions;
   
   // Weekly volume trend
+  var planStart=str.length?new Date(str[str.length-1].date+'T12:00:00'):new Date('2026-03-30T12:00:00');
   var weeks={};
   str.forEach(function(s){
     var d=new Date(s.date+'T12:00:00');
-    var wk=Math.floor((d-new Date('2026-03-30T12:00:00'))/(7*24*60*60*1000))+1;
+    var wk=Math.floor((d-planStart)/(7*24*60*60*1000))+1;
     weeks[wk]=(weeks[wk]||0)+calcTotalVol(s);
   });
   var wkNums=Object.keys(weeks).map(Number).sort(function(a,b){return a-b;});
@@ -706,6 +716,13 @@ function ProgressScreen(props){
 
   var runSessions=car.filter(function(s){return s.type==='Run'});
   var totalKm=car.reduce(function(a,s){return a+s.distanceKm;},0);
+  var now=new Date(),ms7=7*24*60*60*1000;
+  var vol7=str.filter(function(s){return(now-new Date(s.date+'T12:00:00'))<ms7;}).reduce(function(a,s){return a+calcTotalVol(s);},0);
+  var volPrev=str.filter(function(s){var age=now-new Date(s.date+'T12:00:00');return age>=ms7&&age<ms7*2;}).reduce(function(a,s){return a+calcTotalVol(s);},0);
+  var volTrend=volPrev>0?Math.round((vol7-volPrev)/volPrev*100):null;
+  var km7=car.filter(function(s){return(now-new Date(s.date+'T12:00:00'))<ms7;}).reduce(function(a,s){return a+s.distanceKm;},0);
+  var kmPrev=car.filter(function(s){var age=now-new Date(s.date+'T12:00:00');return age>=ms7&&age<ms7*2;}).reduce(function(a,s){return a+s.distanceKm;},0);
+  var kmTrend=kmPrev>0?Math.round((km7-kmPrev)/kmPrev*100):null;
 
   return html`<div class="screen"><div class="screen-inner">
     <div style="font-size:20px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px">Your Progress</div>
@@ -740,17 +757,17 @@ function ProgressScreen(props){
     </div>
 
     <div class="card" style="padding:16px;margin-bottom:12px">
-      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Apple Watch / Health</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px">7-Day vs Prior 7-Day</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div>
-          <div style="font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:0.1em">VO₂ Max</div>
-          <div style="font-size:28px;font-weight:800;color:var(--blue);margin-top:2px">36</div>
-          <div style="font-size:11px;color:var(--green)">↑ Trending up</div>
+          <div style="font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:0.1em">Volume</div>
+          <div style="font-size:24px;font-weight:800;color:var(--blue);margin-top:2px">${vol7.toLocaleString()}<span style="font-size:11px;color:var(--mu);margin-left:4px">kg</span></div>
+          ${volTrend!==null?html`<div style="font-size:11px;color:${volTrend>=0?'var(--green)':'var(--red)'}">${volTrend>=0?'↑ +':'↓ '}${Math.abs(volTrend)}% vs prev</div>`:html`<div style="font-size:11px;color:var(--mu)">No prior data</div>`}
         </div>
         <div>
-          <div style="font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:0.1em">Training Load</div>
-          <div style="font-size:28px;font-weight:800;color:var(--green);margin-top:2px">+4%</div>
-          <div style="font-size:11px;color:var(--mu)">Steady · 7d vs 28d</div>
+          <div style="font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:0.1em">Cardio km</div>
+          <div style="font-size:24px;font-weight:800;color:var(--green);margin-top:2px">${km7.toFixed(1)}<span style="font-size:11px;color:var(--mu);margin-left:4px">km</span></div>
+          ${kmTrend!==null?html`<div style="font-size:11px;color:${kmTrend>=0?'var(--green)':'var(--red)'}">${kmTrend>=0?'↑ +':'↓ '}${Math.abs(kmTrend)}% vs prev</div>`:html`<div style="font-size:11px;color:var(--mu)">No prior data</div>`}
         </div>
       </div>
     </div>
@@ -941,9 +958,25 @@ function BodyScreen(props){
   var fluidS=useState('');var fluid=fluidS[0];var setFluid=fluidS[1];
   var minsS=useState('');var mins=minsS[0];var setMins=minsS[1];
 
+  // Biofeedback / check-in state
+  var enS=useState(7);var energy=enS[0];var setEnergy=enS[1];
+  var slS=useState(7);var sleep=slS[0];var setSleep=slS[1];
+  var moS=useState(7);var motiv=moS[0];var setMotiv=moS[1];
+  var srS=useState(4);var soren=srS[0];var setSoren=srS[1];
+  var mdS=useState(7);var mood=mdS[0];var setMood=mdS[1];
+  var fbnS=useState('');var fbnote=fbnS[0];var setFbnote=fbnS[1];
+  var fbeS=useState([]);var fbentries=fbeS[0];var setFbentries=fbeS[1];
+  var fbmsgS=useState('');var fbmsg=fbmsgS[0];var setFbmsg=fbmsgS[1];
+
   useEffect(function(){
     dbGetAll('bodycomp').then(function(d){
       setEntries(d.sort(function(a,b){return a.date<b.date?1:-1;}));
+    }).catch(function(){});
+  },[]);
+
+  useEffect(function(){
+    dbGetAll('biofeedback').then(function(d){
+      setFbentries(d.sort(function(a,b){return a.date<b.date?1:-1;}));
     }).catch(function(){});
   },[]);
 
@@ -961,6 +994,18 @@ function BodyScreen(props){
       drainSyncQueue();
       setTimeout(function(){setSaveMsg('');},2000);
     }).catch(function(){setSaveMsg('Save failed');});
+  }
+
+  function saveFeedback(){
+    var planWk=currentPlanWeek(props.strSessions||[]);
+    var entry={id:uid(),date:todayISO(),week:Math.min(12,planWk),energy:energy,sleep:sleep,motivation:motiv,soreness:soren,mood:mood,notes:fbnote.trim()};
+    dbPut('biofeedback',entry).then(function(){return queueSync('logBiofeedback',entry);}).then(function(){
+      setFbentries(function(p){return [entry].concat(p.filter(function(x){return x.date!==entry.date;})).sort(function(a,b){return a.date<b.date?1:-1;});});
+      setFbnote('');
+      setFbmsg('Saved ✓');
+      drainSyncQueue();
+      setTimeout(function(){setFbmsg('');},2000);
+    }).catch(function(){setFbmsg('Save failed');});
   }
 
   function saveHydration(){
@@ -1002,8 +1047,9 @@ function BodyScreen(props){
     <div style="font-size:11px;color:var(--mu);margin-bottom:16px;text-transform:uppercase;letter-spacing:0.12em">Composition & Hydration</div>
 
     <div style="display:flex;gap:6px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:4px;margin-bottom:16px">
-      <button onclick=${()=>setSub('comp')} style="flex:1;padding:10px;border:none;border-radius:9px;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;background:${sub==='comp'?'var(--blue)':'transparent'};color:${sub==='comp'?'#fff':'var(--mu2)'}">Composition</button>
+      <button onclick=${()=>setSub('comp')} style="flex:1;padding:10px;border:none;border-radius:9px;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;background:${sub==='comp'?'var(--blue)':'transparent'};color:${sub==='comp'?'#fff':'var(--mu2)'}">Body</button>
       <button onclick=${()=>setSub('hyd')} style="flex:1;padding:10px;border:none;border-radius:9px;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;background:${sub==='hyd'?'var(--blue)':'transparent'};color:${sub==='hyd'?'#fff':'var(--mu2)'}">Hydration</button>
+      <button onclick=${()=>setSub('feedback')} style="flex:1;padding:10px;border:none;border-radius:9px;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;background:${sub==='feedback'?'var(--blue)':'transparent'};color:${sub==='feedback'?'#fff':'var(--mu2)'}">Check-in</button>
     </div>
 
     ${sub==='comp'?html`
@@ -1086,6 +1132,51 @@ function BodyScreen(props){
         </div>
       </div>
     `:null}
+
+    ${sub==='feedback'?html`
+      <div class="card" style="padding:16px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">Today's Check-in</div>
+        <div style="font-size:11px;color:var(--mu);margin-bottom:16px">Rate how you're feeling today. Logged once per day.</div>
+        ${[['Energy',energy,setEnergy],['Sleep Quality',sleep,setSleep],['Motivation',motiv,setMotiv],['Soreness',soren,setSoren],['Mood',mood,setMood]].map(function(row){
+          var scoreCol=row[1]>=7?'var(--green)':row[1]>=4?'var(--gold)':'var(--red)';
+          return html`<div style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span class="lbl" style="margin:0">${row[0]}</span>
+              <span style="font-size:16px;font-weight:800;color:${scoreCol}">${row[1]}<span style="font-size:10px;color:var(--mu)">/10</span></span>
+            </div>
+            <input type="range" min="1" max="10" value=${row[1]} onchange=${(e)=>row[2](Number(e.target.value))}/>
+          </div>`;
+        })}
+        <div style="background:var(--bg3);border-radius:10px;padding:12px;margin-bottom:14px;text-align:center">
+          <span style="font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:0.1em">Avg Score</span>
+          <div style="font-size:28px;font-weight:800;color:${((energy+sleep+motiv+soren+mood)/5)>=7?'var(--green)':((energy+sleep+motiv+soren+mood)/5)>=4?'var(--gold)':'var(--red)'};margin-top:2px">${((energy+sleep+motiv+soren+mood)/5).toFixed(1)}<span style="font-size:12px;color:var(--mu)">/10</span></div>
+        </div>
+        <div style="margin-bottom:12px"><label class="lbl">Notes (optional)</label><input type="text" class="inp" value=${fbnote} oninput=${(e)=>setFbnote(e.target.value)} placeholder="How are you feeling?"/></div>
+        <button class="btn btn-primary" onclick=${saveFeedback}>Save Check-in</button>
+        ${fbmsg?html`<div class="success" style="margin-top:10px">${fbmsg}</div>`:null}
+      </div>
+
+      ${fbentries.length?html`<span class="section-lbl">History (${fbentries.length})</span>
+      <div class="card">
+        ${fbentries.slice(0,10).map(function(fb){
+          var avg=((fb.energy+fb.sleep+fb.motivation+fb.soreness+fb.mood)/5).toFixed(1);
+          var avgCol=Number(avg)>=7?'var(--green)':Number(avg)>=4?'var(--gold)':'var(--red)';
+          return html`<div style="padding:12px 14px;border-bottom:1px solid var(--bd)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <span style="font-size:12px;font-weight:700">${fmtLabel(fb.date)}</span>
+              <span style="font-size:16px;font-weight:800;color:${avgCol}">${avg}<span style="font-size:10px;color:var(--mu)">/10</span></span>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              ${[['Energy',fb.energy],['Sleep',fb.sleep],['Motiv',fb.motivation],['Soren',fb.soreness],['Mood',fb.mood]].map(function(item){
+                var col=item[1]>=7?'var(--green)':item[1]>=4?'var(--gold)':'var(--red)';
+                return html`<span style="font-size:10px;color:${col};background:${col}22;padding:2px 8px;border-radius:8px;border:1px solid ${col}44;font-weight:700">${item[0]} ${item[1]}</span>`;
+              })}
+            </div>
+            ${fb.notes?html`<div style="font-size:11px;color:var(--mu2);margin-top:6px;font-style:italic">"${fb.notes}"</div>`:null}
+          </div>`;
+        })}
+      </div>`:null}
+    `:null}
   </div></div>`;
 }
 
@@ -1142,7 +1233,7 @@ function App(){
 
   if(!ready){return html`<div style="display:flex;height:100vh;align-items:center;justify-content:center;background:var(--bg);color:var(--mu);font-size:12px;letter-spacing:0.2em">LOADING...</div>`;}
 
-  var streak=Math.min(99,strSessions.length+carSessions.length);
+  var streak=calcStreak(strSessions,carSessions);
 
   return html`<div style="height:100%;display:flex;flex-direction:column;background:var(--bg)">
     <div class="hdr">
@@ -1163,7 +1254,7 @@ function App(){
     ${tab==='cardio'?html`<${CardioScreen} carSessions=${carSessions} setSessions=${setCarSessions}/>`:null}
     ${tab==='plan'?html`<${PlanScreen} strSessions=${strSessions}/>`:null}
     ${tab==='progress'?html`<${ProgressScreen} strSessions=${strSessions} carSessions=${carSessions}/>`:null}
-    ${tab==='body'?html`<${BodyScreen}/>`:null}
+    ${tab==='body'?html`<${BodyScreen} strSessions=${strSessions}/>`:null}
     ${tab==='sync'?html`<${SyncScreen} strSessions=${strSessions} carSessions=${carSessions}/>`:null}
     <${Nav} tab=${tab} setTab=${setTab}/>
   </div>`;
