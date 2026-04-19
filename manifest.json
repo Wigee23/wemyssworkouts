@@ -1,15 +1,26 @@
 {
   "name": "WemyssWorkouts",
-  "short_name": "WW",
-  "description": "SGT WEMYSS — Personal Training Tracker",
-  "start_url": "/",
+  "short_name": "WWorkouts",
+  "start_url": ".",
   "display": "standalone",
-  "orientation": "portrait",
-  "theme_color": "#0f1117",
-  "background_color": "#0f1117",
+  "background_color": "#0a0f1c",
+  "theme_color": "#0a0f1c",
   "icons": [
-    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
