@@ -3,16 +3,20 @@
 // Supports: Strength, Cardio, Biofeedback, Body Composition, Hydration
 // ============================================================
 
-var API_KEY = 'WemyssW2026';  // Must match the app's Sync screen
+// Store the real key in Project Settings → Script Properties as "API_KEY".
+// The hardcoded fallback lets existing deployments keep working until migrated.
+var API_KEY = PropertiesService.getScriptProperties().getProperty('API_KEY') || 'WemyssW2026';
 
 function doPost(e) {
+  // Auth check happens BEFORE acquiring the lock so unauthenticated requests
+  // don't block legitimate ones for up to 10 seconds.
+  var body;
+  try { body = JSON.parse(e.postData.contents); } catch(err) { return out({ error: 'Invalid request' }); }
+  if (body.apiKey !== API_KEY) return out({ error: 'Unauthorized' });
+
   var lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000);
-    var body = JSON.parse(e.postData.contents);
-    if (body.apiKey !== API_KEY) {
-      return out({ error: 'Unauthorized' });
-    }
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var result;
     switch (body.action) {
@@ -41,6 +45,12 @@ function out(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+// Prefix strings that Sheets would interpret as formulas (=, +, -, @, |).
+function safe(v) {
+  if (typeof v !== 'string') return v;
+  return /^[=+\-@|]/.test(v) ? "'" + v : v;
+}
+
 function getOrCreateSheet(ss, name, headers) {
   var sheet = ss.getSheetByName(name);
   if (!sheet) {
@@ -63,8 +73,8 @@ function logStrength(ss, data) {
       var vol = (set.weight && typeof set.reps === 'number') ? set.weight * set.reps : '';
       var e1rm = (set.weight && typeof set.reps === 'number' && set.reps > 0)
         ? Math.round(set.weight * (1 + set.reps / 30)) : '';
-      sheet.appendRow([data.id, data.date, data.label, data.warmup || '',
-        block.name, i + 1, set.weight || '', set.reps, vol, e1rm, new Date().toISOString()]);
+      sheet.appendRow([data.id, data.date, safe(data.label), safe(data.warmup || ''),
+        safe(block.name), i + 1, set.weight || '', set.reps, vol, e1rm, new Date().toISOString()]);
       rows++;
     });
   });
@@ -78,7 +88,7 @@ function logCardio(ss, data) {
   ]);
   var zoneNames = ['','Recovery','Base Aerobic','Aerobic','Threshold','Max'];
   sheet.appendRow([
-    data.id, data.date, data.label, data.type, data.duration,
+    data.id, data.date, safe(data.label), safe(data.type), data.duration,
     data.distanceKm, data.avgHR, data.maxHR || '',
     data.hrZone, zoneNames[data.hrZone] || '',
     data.elevationM, data.totalKcal, data.effortScore, data.effortLabel,
@@ -101,7 +111,7 @@ function logBiofeedback(ss, data) {
   var avg = ((data.energy || 0) + (data.sleep || 0) + (data.motivation || 0) +
              (data.soreness || 0) + (data.mood || 0)) / 5;
   sheet.appendRow([data.date, data.week || '', data.energy, data.sleep, data.motivation,
-    data.soreness, data.mood, avg.toFixed(1), data.notes || '', new Date().toISOString()]);
+    data.soreness, data.mood, avg.toFixed(1), safe(data.notes || ''), new Date().toISOString()]);
   return { ok: true };
 }
 
@@ -110,10 +120,10 @@ function logBodycomp(ss, data) {
     'Entry ID','Date','Label','Weight (kg)','Waist (cm)','Body Fat %','LBM (kg)','Fat Mass (kg)','Notes','Logged At'
   ]);
   sheet.appendRow([
-    data.id, data.date, data.label,
+    data.id, data.date, safe(data.label),
     data.weight, data.waist || '', data.bf || '',
     data.lbm || '', data.fatMass || '',
-    data.note || '', new Date().toISOString()
+    safe(data.note || ''), new Date().toISOString()
   ]);
   return { ok: true };
 }
