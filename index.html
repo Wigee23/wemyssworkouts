@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0a0f1c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WemyssWorkouts">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<title>WemyssWorkouts</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0f1c;--bg2:#111827;--bg3:#1e2937;--bd:rgba(255,255,255,0.08);
+  --tx:#e2e4ef;--mu:#6b7094;--mu2:#94a3b8;
+  --blue:#00b4ff;--blue2:#0091cc;--accent:#e8ff4a;
+  --green:#4ade80;--red:#f87171;--gold:#facc15;--orange:#fb923c;
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+  --safe-top:env(safe-area-inset-top,0px);
+}
+html,body{height:100%;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+#app{height:100%;display:flex;flex-direction:column}
+.screen{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 0 calc(80px + var(--safe-bottom)) 0}
+.screen-inner{padding:16px;max-width:640px;margin:0 auto}
+
+/* HEADER */
+.hdr{background:var(--bg);padding:calc(14px + var(--safe-top)) 20px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;border-bottom:1px solid var(--bd)}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--blue),var(--blue2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 4px 12px rgba(0,180,255,0.3)}
+.hdr-title{font-size:17px;font-weight:800;letter-spacing:-0.02em}
+.hdr-sub{font-size:10px;color:var(--mu);margin-top:1px}
+.hdr-streak{display:flex;align-items:center;gap:6px;padding:6px 10px;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);border-radius:20px}
+.hdr-streak-num{font-size:13px;font-weight:700;color:var(--orange)}
+.flame{font-size:14px;animation:flame 1.5s infinite alternate}
+@keyframes flame{from{transform:scale(1)}to{transform:scale(1.15)}}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:16px;margin-bottom:12px;overflow:hidden}
+.card-hero{background:linear-gradient(135deg,rgba(0,180,255,0.12),rgba(0,180,255,0.03));border:1px solid rgba(0,180,255,0.25);border-radius:20px;padding:18px;margin-bottom:16px}
+.card-hdr{padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;color:var(--mu2)}
+
+/* STATS */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.stat{background:var(--bg2);border:1px solid var(--bd);border-radius:14px;padding:14px 10px;text-align:center}
+.stat-val{font-size:22px;font-weight:800;line-height:1;letter-spacing:-0.02em}
+.stat-lbl{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:0.1em;margin-top:6px;font-weight:600}
+
+/* BUTTONS */
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:13px;font-weight:700;letter-spacing:0.05em;cursor:pointer;font-family:inherit;transition:all 0.2s}
+.btn-primary{background:linear-gradient(135deg,var(--blue),var(--blue2));color:#fff;box-shadow:0 4px 12px rgba(0,180,255,0.3)}
+.btn-primary:active{transform:scale(0.98)}
+.btn-primary:disabled{background:var(--bg3);color:var(--mu);box-shadow:none}
+.btn-outline{background:transparent;border:1px dashed rgba(0,180,255,0.4);color:var(--blue)}
+.btn-sm{padding:6px 12px;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-ghost{background:var(--bg3);color:var(--mu2)}
+
+/* INPUTS */
+.inp{background:var(--bg);border:1px solid var(--bd);border-radius:10px;color:var(--tx);font-family:inherit;font-size:14px;padding:11px 14px;outline:none;width:100%;transition:border-color 0.2s}
+.inp:focus{border-color:var(--blue)}
+.lbl{font-size:10px;color:var(--mu);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.1em;display:block;font-weight:600}
+
+/* TABLES */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:10px;letter-spacing:0.08em;color:var(--mu);text-align:left;padding:8px 14px;text-transform:uppercase;border-bottom:1px solid var(--bd);font-weight:600}
+.tbl td{padding:9px 14px;font-size:13px;border-bottom:1px solid var(--bd)}
+
+/* ROWS */
+.row{padding:12px 14px;border-bottom:1px solid var(--bd);cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background 0.15s}
+.row:active{background:rgba(255,255,255,0.03)}
+.row.selected{background:rgba(0,180,255,0.08)}
+
+/* PILLS */
+.pill{display:inline-block;padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-right:6px}
+.tag{display:inline-block;background:var(--bg3);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--mu2)}
+
+/* BOTTOM NAV */
+.nav{background:rgba(10,15,28,0.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--bd);display:flex;position:fixed;bottom:0;left:0;right:0;padding:8px 4px calc(8px + var(--safe-bottom));z-index:20}
+.nav-btn{flex:1;padding:8px 0 4px;border:none;background:transparent;color:var(--mu);font-size:9px;letter-spacing:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit;font-weight:600;transition:color 0.2s;min-width:0}
+.nav-btn.active{color:var(--blue)}
+.nav-icon{font-size:20px;line-height:1}
+
+/* BODY MAP */
+.body-map{background:var(--bg2);border:1px solid var(--bd);border-radius:20px;padding:20px;margin-bottom:16px}
+.body-part{transition:all 0.3s cubic-bezier(0.4,0,0.2,1);cursor:pointer}
+.body-part.active{fill:rgba(0,180,255,0.25);stroke:var(--blue);stroke-width:3;filter:drop-shadow(0 0 8px var(--blue))}
+
+/* PROGRESS BARS */
+.pbar-bg{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.pbar{height:100%;border-radius:3px;transition:width 0.5s ease}
+
+/* SYNC STATUS */
+.sync-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+
+/* MISC */
+.err{color:var(--red);font-size:12px;margin-bottom:8px;padding:8px 12px;background:rgba(248,113,113,0.1);border-radius:8px;border:1px solid rgba(248,113,113,0.2)}
+.success{color:var(--green);font-size:12px;padding:10px 12px;background:rgba(74,222,128,0.1);border-radius:8px;border:1px solid rgba(74,222,128,0.2);margin-bottom:12px}
+.section-lbl{font-size:11px;letter-spacing:0.15em;color:var(--mu);text-transform:uppercase;margin-bottom:10px;display:block;font-weight:600}
+
+/* CHART */
+.chart-wrap{position:relative;height:180px;margin-top:10px}
+
+input[type=range]{width:100%;accent-color:var(--blue);cursor:pointer;height:6px}
+select.inp{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7094' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+select.inp option{background:var(--bg2);color:var(--tx)}
+</style>
+</head>
+<body>
+<div id="app"><div style="display:flex;height:100vh;align-items:center;justify-content:center;color:#6b7094;font-size:12px;letter-spacing:0.2em">LOADING...</div></div>
+<script type="module">
+import { h, render } from 'https://esm.sh/preact@10.23.1';
+import { useState, useEffect, useRef } from 'https://esm.sh/preact@10.23.1/hooks';
+import { html } from 'https://esm.sh/htm@3.1.1/preact?external=preact';
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function hrCol(hr){return hr<95?'var(--green)':hr<110?'var(--gold)':'var(--red)';}
+function zoneName(z){return ['','Recovery','Base Aerobic','Aerobic','Threshold','Max'][z]||'?';}
+function hrZoneFrom(hr){var h=Number(hr);if(!h)return 2;if(h<85)return 1;if(h<100)return 2;if(h<115)return 3;if(h<140)return 4;return 5;}
+function todayISO(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function fmtLabel(iso){var d=new Date(iso+'T12:00:00');return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function calcVol(sets){return sets.reduce(function(s,x){return s+(x.weight||0)*(typeof x.reps==='number'?x.reps:0);},0);}
+function calcTotalVol(sess){return sess.blocks.reduce(function(a,b){return a+calcVol(b.sets);},0);}
+function topWt(sets){var w=sets.map(function(s){return s.weight||0;});return w.length?Math.max.apply(null,w):0;}
+function epley(weight,reps){if(!weight||typeof reps!=='number'||reps<1)return 0;return Math.round(weight*(1+reps/30));}
+
+// ── INDEXEDDB ─────────────────────────────────────────────────────────────────
+var _db=null;
+function openDB(){
+  if(_db)return Promise.resolve(_db);
+  return new Promise(function(res,rej){
+    var req=indexedDB.open('wemyssworkouts',3);
+    req.onupgradeneeded=function(e){
+      var db=e.target.result;
+      ['strength','cardio','biofeedback','syncQueue','bodycomp','hydration'].forEach(function(name){
+        if(!db.objectStoreNames.contains(name)){db.createObjectStore(name,{keyPath:'id'});}
+      });
+    };
+    req.onsuccess=function(e){_db=e.target.result;res(_db);};
+    req.onerror=function(e){rej(e.target.error);};
+  });
+}
+function dbGetAll(store){return openDB().then(function(db){return new Promise(function(res,rej){var tx=db.transaction(store,'readonly');var req=tx.objectStore(store).getAll();req.onsuccess=function(){res(req.result||[]);};req.onerror=function(){rej(req.error);};});});}
+function dbPut(store,item){return openDB().then(function(db){return new Promise(function(res,rej){var tx=db.transaction(store,'readwrite');var req=tx.objectStore(store).put(item);req.onsuccess=function(){res(req.result);};req.onerror=function(){rej(req.error);};});});}
+function dbDelete(store,id){return openDB().then(function(db){return new Promise(function(res,rej){var tx=db.transaction(store,'readwrite');var req=tx.objectStore(store).delete(id);req.onsuccess=function(){res();};req.onerror=function(){rej(req.error);};});});}
+
+// ── SYNC ──────────────────────────────────────────────────────────────────────
+function getSyncConfig(){try{return JSON.parse(localStorage.getItem('ww_sync')||'{}');}catch(e){return {};}}
+function setSyncConfig(cfg){localStorage.setItem('ww_sync',JSON.stringify(cfg));}
+
+function syncItem(item,cfg){
+  if(!cfg.url)return Promise.reject(new Error('No sync URL configured'));
+  var payload={apiKey:cfg.apiKey||'',action:item.action,data:item.data};
+  return fetch(cfg.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload),redirect:'follow'})
+    .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status+' from Apps Script');return r.json();})
+    .then(function(j){if(j.error)throw new Error(j.error);return j;});
+}
+
+// Retry with exponential backoff
+function syncItemWithRetry(item,cfg,maxRetries){
+  maxRetries=maxRetries||3;
+  function attempt(n){
+    return syncItem(item,cfg).catch(function(err){
+      if(n>=maxRetries)throw err;
+      var delay=Math.min(500*Math.pow(2,n),4000);
+      return new Promise(function(res){setTimeout(res,delay);}).then(function(){return attempt(n+1);});
+    });
+  }
+  return attempt(0);
+}
+
+function testConnection(cfg){
+  if(!cfg.url)return Promise.reject(new Error('No URL set'));
+  if(!navigator.onLine)return Promise.reject(new Error('You appear to be offline'));
+  return fetch(cfg.url+'?apiKey='+encodeURIComponent(cfg.apiKey||''),{method:'GET',redirect:'follow'})
+    .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status+' — check your Apps Script deployment');return r.json();})
+    .then(function(j){
+      if(j.error==='Unauthorized')throw new Error('API key mismatch. Check Sync settings.');
+      if(j.error)throw new Error(j.error);
+      return j;
+    });
+}
+
+function drainSyncQueue(onProgress,onError){
+  var cfg=getSyncConfig();
+  if(!cfg.url)return Promise.resolve({synced:0,failed:0,reason:'no_url'});
+  if(!navigator.onLine)return Promise.resolve({synced:0,failed:0,reason:'offline'});
+  return dbGetAll('syncQueue').then(function(items){
+    if(!items.length)return {synced:0,failed:0,total:0};
+    var synced=0,failed=0,lastErr=null;
+    function next(i){
+      if(i>=items.length)return Promise.resolve({synced:synced,failed:failed,total:items.length,lastErr:lastErr});
+      return syncItemWithRetry(items[i],cfg).then(function(){
+        synced++;
+        if(onProgress)onProgress(synced,items.length);
+        return dbDelete('syncQueue',items[i].id);
+      }).catch(function(err){
+        failed++;
+        lastErr=err.message||String(err);
+        if(onError)onError(err,items[i]);
+        // Leave failed items in queue for next attempt
+      }).then(function(){return next(i+1);});
+    }
+    return next(0);
+  });
+}
+
+function queueSync(action,data){return dbPut('syncQueue',{id:uid(),action:action,data:data,ts:Date.now()});}
+
+
+// ── SEED DATA ────────────────────────────────────────────────────────────────
+var SEED_STR=[
+  {id:'s1',date:'2026-03-30',label:'Mon 30 Mar',warmup:'Indoor Row 5 min',blocks:[
+    {name:'Bench Press',sets:[{weight:40,reps:12},{weight:45,reps:10},{weight:50,reps:8},{weight:55,reps:6}]},
+    {name:'Bent Over Row',sets:[{weight:25,reps:12},{weight:35,reps:10},{weight:70,reps:8},{weight:80,reps:6}]},
+    {name:'Military Press',sets:[{weight:20,reps:12},{weight:30,reps:10},{weight:35,reps:8},{weight:40,reps:6}]},
+    {name:'KB Squat Clean & Press',sets:[{weight:16,reps:'10 E/S'},{weight:16,reps:'10 E/S'},{weight:16,reps:'10 E/S'}]},
+    {name:'KB Swings',sets:[{weight:20,reps:20},{weight:20,reps:20},{weight:20,reps:20}]}
+  ]},
+  {id:'s2',date:'2026-04-16',label:'Thu 16 Apr',warmup:'Row 5 min',blocks:[
+    {name:'KB Cleans',sets:[{weight:20,reps:10},{weight:20,reps:10},{weight:20,reps:10}]},
+    {name:'KB Swings',sets:[{weight:20,reps:10},{weight:20,reps:10},{weight:20,reps:10}]},
+    {name:'Deadlift',sets:[{weight:60,reps:12},{weight:60,reps:10},{weight:70,reps:8},{weight:70,reps:8}]},
+    {name:'Bent Over Row',sets:[{weight:60,reps:12},{weight:60,reps:10},{weight:70,reps:8},{weight:70,reps:8}]},
+    {name:'Military Press',sets:[{weight:20,reps:12},{weight:30,reps:10},{weight:30,reps:10}]},
+    {name:'Bicep Curl',sets:[{weight:30,reps:12},{weight:30,reps:8},{weight:20,reps:8}]},
+    {name:'Tricep Extension',sets:[{weight:15,reps:12},{weight:17.5,reps:12},{weight:17.5,reps:12}]},
+    {name:'Lat Pulldown',sets:[{weight:39,reps:12},{weight:39,reps:12},{weight:39,reps:12}]}
+  ]}
+];
+var SEED_CAR=[
+  {id:'c1',date:'2026-04-01',label:'Wed 1 Apr',type:'Walk / Hike',duration:'45:31',distanceKm:3.51,elevationM:69,avgPace:"12'57\"/km",avgHR:91,maxHR:115,activeKcal:224,totalKcal:305,effortLabel:'Easy',effortScore:3,hrZone:2,splits:[{km:1,time:'12:07',pace:"12'07\"",hr:85},{km:2,time:'15:00',pace:"15'00\"",hr:88},{km:3,time:'11:11',pace:"11'11\"",hr:94},{km:4,time:'06:39',pace:"12'59\"",hr:97}]},
+  {id:'c2',date:'2026-04-07',label:'Tue 7 Apr',type:'Run',duration:'45:01',distanceKm:7.21,elevationM:62,avgPace:"6'14\"/km",avgHR:145,maxHR:162,activeKcal:532,totalKcal:612,effortLabel:'Hard',effortScore:7,hrZone:4,splits:[{km:1,time:'05:48',pace:"5'48\"",hr:72},{km:2,time:'06:06',pace:"6'06\"",hr:136},{km:3,time:'06:19',pace:"6'19\"",hr:143},{km:4,time:'06:15',pace:"6'15\"",hr:148},{km:5,time:'06:10',pace:"6'10\"",hr:149}]},
+  {id:'c3',date:'2026-04-16',label:'Thu 16 Apr',type:'Strength Training',duration:'36:04',distanceKm:0,elevationM:0,avgPace:'-',avgHR:116,maxHR:144,activeKcal:193,totalKcal:257,effortLabel:'Easy',effortScore:2,hrZone:3,splits:[]}
+];
+
+// ── 12-WEEK PLAN ─────────────────────────────────────────────────────────────
+var PLAN=[
+  {wk:1,block:'B1',phase:'Hypertrophy',note:'4×8-10 @ 70-75%',mon:'Push STR',tue:'Pull STR + Run',wed:'Legs+KB+Z2',thu:'Depletion #1',fri:'Depletion #2',sat:'Tension/Power',sun:'Rest + Z2'},
+  {wk:2,block:'B1',phase:'Hypertrophy',note:'4×9 @ 70-75%',mon:'Push STR',tue:'Pull STR + Run',wed:'Legs+KB+Z2',thu:'Depletion #1',fri:'Depletion #2',sat:'Tension/Power',sun:'Rest + Z2'},
+  {wk:3,block:'B1',phase:'Hypertrophy',note:'4×10 @ 72-77%',mon:'Push STR',tue:'Pull STR + Run',wed:'Legs+KB+Z2',thu:'Depletion #1',fri:'Depletion #2',sat:'Tension/Power',sun:'Rest + Z2'},
+  {wk:4,block:'DL',phase:'DELOAD',note:'-50% volume · maintenance cals',mon:'Light 2×8',tue:'Light 2×8',wed:'Mobility',thu:'Rest',fri:'Z2 Walk',sat:'Light Full',sun:'Rest'},
+  {wk:5,block:'B2',phase:'Str-Hyp DUP',note:'5×5 @ 78-82%',mon:'Push 5×5',tue:'Pull 5×5 + Run',wed:'Legs+KB+Z2',thu:'Depletion #1',fri:'Depletion #2',sat:'Tension/Power',sun:'Rest + Z2'},
+  {wk:6,block:'B2',phase:'Str-Hyp DUP',note:'5×5 @ 82-87%',mon:'Push 5×5',tue:'Pull 5×5 + Run',wed:'Legs+KB+Z2',thu:'Depletion #1',fri:'Depletion #2',sat:'Tension/Power',sun:'Rest + Z2'},
+  {wk:7,block:'B2',phase:'Str-Hyp DUP',note:'5×5 @ 85-87%',mon:'Push 5×5',tue:'Pull 5×5 + Run',wed:'Legs+KB+Z2',thu:'Depletion #1',fri:'Depletion #2',sat:'Tension/Power',sun:'Rest + Z2'},
+  {wk:8,block:'DL',phase:'DELOAD',note:'-40% volume · maintenance cals',mon:'Light 3×5',tue:'Light 3×5',wed:'Mobility',thu:'Rest',fri:'Z2 Walk',sat:'Light Full',sun:'Rest'},
+  {wk:9,block:'B3',phase:'Peak Strength',note:'3×3 @ 85-90%',mon:'Push 3×3',tue:'Pull 3×3 + Run',wed:'Legs+KB+Z2',thu:'Dep 5 rounds',fri:'Dep 5 rounds',sat:'Tension/Power',sun:'Rest + Z2'},
+  {wk:10,block:'B3',phase:'Peak Strength',note:'3×3 @ 88-92%',mon:'Push 3×3',tue:'Pull 3×3 + Run',wed:'Legs+KB+Z2',thu:'Dep 5 rounds',fri:'Dep 5 rounds',sat:'Tension/Power',sun:'Rest + Z2'},
+  {wk:11,block:'B3',phase:'Peak Strength',note:'3×3 @ 90-95%',mon:'Push 3×3',tue:'Pull 3×3 + Run',wed:'Legs+KB+Z2',thu:'Dep 5 rounds',fri:'Dep 5 rounds',sat:'Tension/Power',sun:'Rest + Z2'},
+  {wk:12,block:'TST',phase:'TESTING',note:'New maxes · compare vs baseline',mon:'New maxes',tue:'New maxes',wed:'Light',thu:'Light',fri:'Light',sat:'Max test',sun:'Rest'}
+];
+function currentPlanWeek(strSessions){if(!strSessions.length)return 1;var sorted=strSessions.slice().sort(function(a,b){return a.date>b.date?1:-1;});var first=new Date(sorted[0].date+'T12:00:00');var now=new Date();var diff=Math.floor((now-first)/(7*24*60*60*1000));return Math.min(12,Math.max(1,diff+1));}
+
+// ── EXERCISE LIBRARY ──────────────────────────────────────────────────────────
+var EXERCISE_LIB={
+  'Compound':['Bench Press','Back Squat','Front Squat','Deadlift','Bent Over Row','Military Press','Overhead Press','Incline Bench','Weighted Dip','Weighted Pull-up','Romanian Deadlift','Power Clean'],
+  'Kettlebell':['KB Swings','KB Cleans','KB Squat Clean & Press','KB Snatch','KB Turkish Get-Up','KB Goblet Squat','KB Floor Press','KB Windmill'],
+  'Isolation':['Bicep Curl','Tricep Extension','Lat Pulldown','Cable Row','Dumbbell Fly','Rear Delt Fly','Lateral Raise','Meadows Row','Leg Extension','Leg Curl','Face Pull'],
+  'Unilateral':['Bulgarian Split Squat','Walking Lunge','Single-Leg RDL','Single-Leg Squat','Pistol Squat','Single-Arm DB Row'],
+  'Core':['Plank','Side Plank','Hanging Leg Raise','Knees to Chest','Barbell Rollout','Pallof Press','Russian Twist','Ab Wheel','Dead Bug','Bird Dog']
+};
+var CARDIO_TYPES=['Run','Walk / Hike','Cycle','Row','Swim','Strength Training','HIIT','Other'];
+var EFFORT_LBL=['','Very Easy','Easy','Moderate','Moderate','Hard','Hard','Very Hard','Very Hard','Max','Max'];
+
+// ── BODY MAP (Fitify-style SVG) ──────────────────────────────────────────────
+function BodyMap(props){
+  var selected=props.selected;
+  var onSelect=props.onSelect;
+  function isActive(part){return selected.has(part);}
+  return html`
+    <svg width="100%" height="380" viewBox="0 0 320 400" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto;max-width:280px">
+      <!-- Silhouette -->
+      <ellipse cx="160" cy="55" rx="32" ry="34" fill="#1e2937"/>
+      <rect x="124" y="95" width="72" height="95" rx="14" fill="#1e2937"/>
+      <line x1="130" y1="108" x2="78" y2="180" stroke="#1e2937" stroke-width="26" stroke-linecap="round"/>
+      <line x1="190" y1="108" x2="242" y2="180" stroke="#1e2937" stroke-width="26" stroke-linecap="round"/>
+      <rect x="124" y="185" width="72" height="25" rx="6" fill="#1e2937"/>
+      <line x1="138" y1="210" x2="118" y2="320" stroke="#1e2937" stroke-width="28" stroke-linecap="round"/>
+      <line x1="182" y1="210" x2="202" y2="320" stroke="#1e2937" stroke-width="28" stroke-linecap="round"/>
+      <line x1="118" y1="320" x2="112" y2="375" stroke="#1e2937" stroke-width="22" stroke-linecap="round"/>
+      <line x1="202" y1="320" x2="208" y2="375" stroke="#1e2937" stroke-width="22" stroke-linecap="round"/>
+      
+      <!-- Clickable target zones -->
+      <circle onclick=${()=>onSelect('shoulders')} cx="128" cy="108" r="16" class="body-part ${isActive('shoulders')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('shoulders')} cx="192" cy="108" r="16" class="body-part ${isActive('shoulders')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('chest')} cx="160" cy="125" r="22" class="body-part ${isActive('chest')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('arms')} cx="90" cy="155" r="16" class="body-part ${isActive('arms')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('arms')} cx="230" cy="155" r="16" class="body-part ${isActive('arms')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('core')} cx="160" cy="175" r="20" class="body-part ${isActive('core')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('back')} cx="160" cy="145" r="18" class="body-part ${isActive('back')?'active':''}" fill="rgba(0,180,255,0.05)" stroke="rgba(0,180,255,0.3)" stroke-width="2" stroke-dasharray="3,3"/>
+      <circle onclick=${()=>onSelect('glutes')} cx="160" cy="205" r="16" class="body-part ${isActive('glutes')?'active':''}" fill="rgba(0,180,255,0.05)" stroke="rgba(0,180,255,0.3)" stroke-width="2" stroke-dasharray="3,3"/>
+      <circle onclick=${()=>onSelect('quads')} cx="130" cy="260" r="16" class="body-part ${isActive('quads')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('quads')} cx="190" cy="260" r="16" class="body-part ${isActive('quads')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('calves')} cx="113" cy="350" r="12" class="body-part ${isActive('calves')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('calves')} cx="207" cy="350" r="12" class="body-part ${isActive('calves')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
+    </svg>`;
+}
+
+// ── SIMPLE LINE CHART (SVG) ──────────────────────────────────────────────────
+function LineChart(props){
+  var data=props.data;
+  var labels=props.labels;
+  var color=props.color||'var(--blue)';
+  if(!data||!data.length)return html`<div style="color:var(--mu);text-align:center;padding:40px;font-size:12px">No data yet</div>`;
+  var max=Math.max.apply(null,data.concat([1]));
+  var min=Math.min.apply(null,data);
+  var range=max-min||1;
+  var w=600,h=160,pad=30;
+  var points=data.map(function(v,i){
+    var x=pad+(i/(data.length-1||1))*(w-pad*2);
+    var y=h-pad-((v-min)/range)*(h-pad*2);
+    return x+','+y;
+  }).join(' ');
+  return html`
+    <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:180px">
+      <polyline points=${points} fill="none" stroke=${color} stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      ${data.map(function(v,i){
+        var x=pad+(i/(data.length-1||1))*(w-pad*2);
+        var y=h-pad-((v-min)/range)*(h-pad*2);
+        return html`<circle cx=${x} cy=${y} r="5" fill=${color}/>`;
+      })}
+      ${labels.map(function(l,i){
+        var x=pad+(i/(labels.length-1||1))*(w-pad*2);
+        return html`<text x=${x} y=${h-8} text-anchor="middle" fill="var(--mu)" font-size="11">${l}</text>`;
+      })}
+    </svg>`;
+}
+
+// ── STRENGTH FORM ─────────────────────────────────────────────────────────────
+function StrengthForm(props){
+  var initBlocks=[{name:'Bench Press',sets:[{weight:'',reps:''},{weight:'',reps:''},{weight:'',reps:''}]}];
+  var ds=useState(todayISO());var date=ds[0];var setDate=ds[1];
+  var ws=useState('');var warmup=ws[0];var setWarmup=ws[1];
+  var bs=useState(initBlocks);var blocks=bs[0];var setBlocks=bs[1];
+  var sv=useState(false);var saving=sv[0];var setSaving=sv[1];
+  var es=useState('');var err=es[0];var setErr=es[1];
+
+  function addBlock(){setBlocks(function(p){return p.concat([{name:'',sets:[{weight:'',reps:''}]}]);});}
+  function removeBlock(bi){setBlocks(function(p){return p.filter(function(_,i){return i!==bi;});});}
+  function addSet(bi){setBlocks(function(p){return p.map(function(b,i){if(i!==bi)return b;return{name:b.name,sets:b.sets.concat([{weight:'',reps:''}])};});});}
+  function removeSet(bi,si){setBlocks(function(p){return p.map(function(b,i){if(i!==bi)return b;return{name:b.name,sets:b.sets.filter(function(_,j){return j!==si;})};});});}
+  function updName(bi,v){setBlocks(function(p){return p.map(function(b,i){if(i!==bi)return b;return{name:v,sets:b.sets};});});}
+  function updSet(bi,si,f,v){setBlocks(function(p){return p.map(function(b,i){if(i!==bi)return b;var ns=b.sets.map(function(s,j){if(j!==si)return s;var n={weight:s.weight,reps:s.reps};n[f]=v;return n;});return{name:b.name,sets:ns};});});}
+
+  function save(){
+    setErr('');
+    if(!date){setErr('Date required');return;}
+    var cleaned=blocks.filter(function(b){return b.name.trim();}).map(function(b){
+      return{name:b.name.trim(),sets:b.sets.filter(function(s){return s.reps!=='';}).map(function(s){
+        return{weight:s.weight===''?null:parseFloat(s.weight)||null,reps:isNaN(Number(s.reps))?s.reps:Number(s.reps)};
+      })};
+    }).filter(function(b){return b.sets.length>0;});
+    if(!cleaned.length){setErr('Add at least one set');return;}
+    setSaving(true);
+    var sess={id:uid(),date:date,label:fmtLabel(date),warmup:warmup.trim(),blocks:cleaned};
+    props.onSave(sess).catch(function(){setErr('Save failed');setSaving(false);});
+  }
+
+  return html`<div class="card" style="padding:16px;margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span style="font-size:14px;font-weight:700;color:var(--blue)">New Strength Session</span>
+      <button class="btn-sm btn-ghost" onclick=${props.onCancel}>Cancel</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+      <div><label class="lbl">Date</label><input type="date" class="inp" value=${date} onchange=${(e)=>setDate(e.target.value)}/></div>
+      <div><label class="lbl">Warm-up</label><input type="text" class="inp" value=${warmup} oninput=${(e)=>setWarmup(e.target.value)} placeholder="Row 5 min"/></div>
+    </div>
+    ${blocks.map(function(block,bi){return html`
+      <div style="background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:10px">
+        <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+          <select class="inp" style="flex:1" value=${block.name} onchange=${(e)=>updName(bi,e.target.value)}>
+            <option value="">— Select exercise —</option>
+            ${Object.keys(EXERCISE_LIB).map(function(cat){return html`<optgroup label=${cat}>${EXERCISE_LIB[cat].map(function(ex){return html`<option value=${ex}>${ex}</option>`;})}</optgroup>`;})}
+            <option value=${block.name&&!Object.values(EXERCISE_LIB).flat().includes(block.name)?block.name:''} selected=${block.name&&!Object.values(EXERCISE_LIB).flat().includes(block.name)}>${block.name&&!Object.values(EXERCISE_LIB).flat().includes(block.name)?block.name:''}</option>
+          </select>
+          <button class="btn-sm" style="background:rgba(248,113,113,0.15);color:var(--red)" onclick=${()=>removeBlock(bi)}>×</button>
+        </div>
+        <input type="text" class="inp" style="margin-bottom:8px" value=${block.name} oninput=${(e)=>updName(bi,e.target.value)} placeholder="Or type custom exercise name"/>
+        ${block.sets.map(function(set,si){return html`
+          <div style="display:grid;grid-template-columns:28px 1fr 1fr 32px;gap:6px;margin-bottom:6px;align-items:center">
+            <div style="color:var(--mu);font-size:12px;text-align:center">${si+1}</div>
+            <input type="number" class="inp" value=${set.weight} oninput=${(e)=>updSet(bi,si,'weight',e.target.value)} placeholder="kg"/>
+            <input type="text" class="inp" value=${set.reps} oninput=${(e)=>updSet(bi,si,'reps',e.target.value)} placeholder="reps"/>
+            <button class="btn-sm btn-ghost" onclick=${()=>removeSet(bi,si)}>−</button>
+          </div>`;})}
+        <button class="btn-sm btn-ghost" style="margin-top:6px" onclick=${()=>addSet(bi)}>+ Set</button>
+      </div>`;})}
+    <button class="btn btn-outline" style="margin-bottom:12px" onclick=${addBlock}>+ Add Exercise</button>
+    ${err?html`<div class="err">${err}</div>`:null}
+    <button class="btn btn-primary" onclick=${save} disabled=${saving}>${saving?'Saving...':'Save Session'}</button>
+  </div>`;
+}
+
+// ── CARDIO FORM ───────────────────────────────────────────────────────────────
+function CardioForm(props){
+  var ds=useState(todayISO());var cd=ds[0];var setCd=ds[1];
+  var ts=useState('Run');var ct=ts[0];var setCt=ts[1];
+  var durs=useState('');var cDur=durs[0];var setCDur=durs[1];
+  var dists=useState('');var cDist=dists[0];var setCDist=dists[1];
+  var ahrs=useState('');var cAvgHR=ahrs[0];var setCAvgHR=ahrs[1];
+  var mhrs=useState('');var cMaxHR=mhrs[0];var setCMaxHR=mhrs[1];
+  var elevs=useState('');var cElev=elevs[0];var setCElev=elevs[1];
+  var kcals=useState('');var cKcal=kcals[0];var setCKcal=kcals[1];
+  var effs=useState(5);var cEff=effs[0];var setCEff=effs[1];
+  var sv=useState(false);var saving=sv[0];var setSaving=sv[1];
+  var es=useState('');var err=es[0];var setErr=es[1];
+
+  function save(){
+    setErr('');
+    if(!cd){setErr('Date required');return;}
+    if(!cDur){setErr('Duration required');return;}
+    var distNum=parseFloat(cDist)||0,hrNum=parseInt(cAvgHR)||0;
+    setSaving(true);
+    var sess={id:uid(),date:cd,label:fmtLabel(cd),type:ct,duration:cDur,distanceKm:distNum,elevationM:parseInt(cElev)||0,avgPace:'-',avgHR:hrNum,maxHR:parseInt(cMaxHR)||0,activeKcal:parseInt(cKcal)||0,totalKcal:parseInt(cKcal)||0,effortScore:cEff,effortLabel:EFFORT_LBL[cEff]||'Moderate',hrZone:hrZoneFrom(hrNum),splits:[]};
+    props.onSave(sess).catch(function(){setErr('Save failed');setSaving(false);});
+  }
+
+  return html`<div class="card" style="padding:16px;margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <span style="font-size:14px;font-weight:700;color:var(--blue)">New Cardio Session</span>
+      <button class="btn-sm btn-ghost" onclick=${props.onCancel}>Cancel</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div><label class="lbl">Date</label><input type="date" class="inp" value=${cd} onchange=${(e)=>setCd(e.target.value)}/></div>
+      <div><label class="lbl">Type</label><select class="inp" value=${ct} onchange=${(e)=>setCt(e.target.value)}>${CARDIO_TYPES.map(function(t){return html`<option value=${t}>${t}</option>`;})}</select></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+      <div><label class="lbl">Time</label><input type="text" class="inp" value=${cDur} oninput=${(e)=>setCDur(e.target.value)} placeholder="45:31"/></div>
+      <div><label class="lbl">km</label><input type="number" class="inp" value=${cDist} oninput=${(e)=>setCDist(e.target.value)} placeholder="7.21"/></div>
+      <div><label class="lbl">Elev m</label><input type="number" class="inp" value=${cElev} oninput=${(e)=>setCElev(e.target.value)} placeholder="62"/></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+      <div><label class="lbl">Avg HR</label><input type="number" class="inp" value=${cAvgHR} oninput=${(e)=>setCAvgHR(e.target.value)} placeholder="145"/></div>
+      <div><label class="lbl">Max HR</label><input type="number" class="inp" value=${cMaxHR} oninput=${(e)=>setCMaxHR(e.target.value)} placeholder="162"/></div>
+      <div><label class="lbl">kcal</label><input type="number" class="inp" value=${cKcal} oninput=${(e)=>setCKcal(e.target.value)} placeholder="612"/></div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label class="lbl">Effort ${cEff}/10 — ${EFFORT_LBL[cEff]}</label>
+      <input type="range" min="1" max="10" value=${cEff} onchange=${(e)=>setCEff(Number(e.target.value))}/>
+    </div>
+    ${err?html`<div class="err">${err}</div>`:null}
+    <button class="btn btn-primary" onclick=${save} disabled=${saving}>${saving?'Saving...':'Save Session'}</button>
+  </div>`;
+}
+
+// ── HOME SCREEN ───────────────────────────────────────────────────────────────
+function HomeScreen(props){
+  var str=props.strSessions,car=props.carSessions;
+  var planWk=currentPlanWeek(str);
+  var planRow=PLAN[planWk-1]||PLAN[0];
+  var dow=['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
+  var todayPrescription=planRow[dow]||'Rest';
+  var lastStr=str.length?str[0]:null;
+  var lastCar=car.length?car[0]:null;
+  var weekVol=str.filter(function(s){var d=new Date(s.date+'T12:00:00'),now=new Date();return (now-d)<7*24*60*60*1000;}).reduce(function(a,s){return a+calcTotalVol(s);},0);
+  var weekKm=car.filter(function(s){var d=new Date(s.date+'T12:00:00'),now=new Date();return(now-d)<7*24*60*60*1000;}).reduce(function(a,s){return a+s.distanceKm;},0);
+  var bodyState=useState(new Set());var selBody=bodyState[0];var setSelBody=bodyState[1];
+  function toggleBody(part){setSelBody(function(p){var n=new Set(p);if(n.has(part))n.delete(part);else n.add(part);return n;});}
+  var qCount=useState(0);var queueN=qCount[0];var setQueueN=qCount[1];
+  useEffect(function(){dbGetAll('syncQueue').then(function(q){setQueueN(q.length);});},[]);
+  var syncCfg=getSyncConfig();
+
+  function bodyRec(){
+    if(selBody.size===0)return 'Tap body parts for today\'s targeted exercises';
+    var recs=[];
+    if(selBody.has('chest')||selBody.has('arms'))recs.push('Bench Press');
+    if(selBody.has('shoulders'))recs.push('Military Press');
+    if(selBody.has('back'))recs.push('Bent Over Row, Deadlift');
+    if(selBody.has('core'))recs.push('Plank, Hanging Leg Raise');
+    if(selBody.has('glutes')||selBody.has('quads'))recs.push('Bulgarian Split Squat');
+    if(selBody.has('calves'))recs.push('Calf Raises');
+    return recs.length?recs.join(' · '):'No specific exercises for this area today';
+  }
+
+  return html`<div class="screen"><div class="screen-inner">
+    <div class="card-hero">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <div style="font-size:10px;color:var(--blue);text-transform:uppercase;letter-spacing:0.15em;font-weight:700;margin-bottom:4px">WEEK ${planWk} OF 12 · ${planRow.phase}</div>
+          <div style="font-size:22px;font-weight:800;letter-spacing:-0.02em">${todayPrescription}</div>
+          <div style="font-size:12px;color:var(--mu2);margin-top:2px">${planRow.note}</div>
+        </div>
+        <div style="font-size:28px">🔥</div>
+      </div>
+      <div class="pbar-bg" style="margin-top:12px"><div class="pbar" style="width:${(planWk/12)*100}%;background:linear-gradient(90deg,var(--blue),#00e0ff)"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--mu);margin-top:6px"><span>Start</span><span>${planWk}/12 weeks</span><span>Test</span></div>
+    </div>
+
+    ${queueN>0&&syncCfg.url?html`
+      <div style="background:rgba(251,146,60,0.12);border:1px solid rgba(251,146,60,0.3);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:12px;color:var(--orange);font-weight:600">☁ ${queueN} session${queueN>1?'s':''} waiting to sync</span>
+        <button class="btn-sm" style="background:var(--orange);color:#000" onclick=${()=>{drainSyncQueue().then(function(){dbGetAll('syncQueue').then(function(q){setQueueN(q.length);});});}}>Sync</button>
+      </div>`:null}
+
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-val" style="color:var(--blue)">${weekVol?weekVol.toLocaleString():'0'}</div><div class="stat-lbl">kg · week</div></div>
+      <div class="stat"><div class="stat-val" style="color:var(--green)">${weekKm.toFixed(1)}</div><div class="stat-lbl">km · week</div></div>
+      <div class="stat"><div class="stat-val" style="color:var(--gold)">${str.length+car.length}</div><div class="stat-lbl">sessions</div></div>
+    </div>
+
+    <span class="section-lbl">Focus Areas</span>
+    <div class="body-map">
+      <${BodyMap} selected=${selBody} onSelect=${toggleBody}/>
+      <div style="text-align:center;font-size:12px;color:var(--mu2);margin-top:8px;min-height:32px;padding:0 10px">${bodyRec()}</div>
+    </div>
+
+    ${lastStr?html`<div class="card">
+      <div class="card-hdr"><span class="card-title">Last Strength</span><span style="font-size:11px;color:var(--mu)">${lastStr.label}</span></div>
+      <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:13px;color:var(--tx);font-weight:600">${lastStr.blocks.length} exercises</div>
+          <div style="font-size:11px;color:var(--mu)">${lastStr.blocks.reduce(function(a,b){return a+b.sets.length;},0)} sets</div>
+        </div>
+        <div style="font-size:20px;font-weight:800;color:var(--blue)">${calcTotalVol(lastStr).toLocaleString()} <span style="font-size:11px;color:var(--mu)">kg</span></div>
+      </div>
+    </div>`:null}
+
+    ${lastCar?html`<div class="card">
+      <div class="card-hdr"><span class="card-title">Last Cardio</span><span style="font-size:11px;color:var(--mu)">${lastCar.label}</span></div>
+      <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <span class="pill" style="background:${hrCol(lastCar.avgHR)}22;color:${hrCol(lastCar.avgHR)};border:1px solid ${hrCol(lastCar.avgHR)}66">Z${lastCar.hrZone}</span>
+          <span style="font-size:12px;color:var(--mu2)">${lastCar.type}</span>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:15px;font-weight:700;color:var(--blue)">${lastCar.duration}</div>
+          <div style="font-size:11px;color:var(--mu)">${lastCar.avgHR} bpm · ${lastCar.distanceKm}km</div>
+        </div>
+      </div>
+    </div>`:null}
+
+    <span class="section-lbl" style="margin-top:16px">This Week</span>
+    <div class="card">
+      ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(function(day,i){
+        var keys=['mon','tue','wed','thu','fri','sat','sun'];
+        var pres=planRow[keys[i]]||'Rest';
+        var isToday=i===((new Date().getDay()+6)%7);
+        return html`<div style="padding:11px 16px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;background:${isToday?'rgba(0,180,255,0.06)':'transparent'}">
+          <span style="font-size:12px;color:${isToday?'var(--blue)':'var(--mu)'};font-weight:${isToday?'700':'500'};width:40px">${day}${isToday?' •':''}</span>
+          <span style="font-size:12px;color:${pres==='Rest'?'var(--mu)':'var(--tx)'};font-weight:500">${pres}</span>
+        </div>`;
+      })}
+    </div>
+  </div></div>`;
+}
+
+// ── STRENGTH SCREEN ───────────────────────────────────────────────────────────
+function StrengthScreen(props){
+  var str=props.strSessions,setSessions=props.setSessions;
+  var showForm=useState(false);var sf=showForm[0];var setSf=showForm[1];
+  var selId=useState(null);var sid=selId[0];var setSid=selId[1];
+  var selSess=sid?str.find(function(s){return s.id===sid;}):str[0];
+
+  function saveSession(sess){
+    return dbPut('strength',sess).then(function(){return queueSync('logStrength',sess);}).then(function(){
+      setSessions(function(p){return [sess].concat(p.filter(function(s){return s.id!==sess.id;})).sort(function(a,b){return a.date<b.date?1:-1;});});
+      setSid(sess.id);setSf(false);
+      drainSyncQueue();
+    });
+  }
+
+  return html`<div class="screen"><div class="screen-inner">
+    ${sf?html`<${StrengthForm} onSave=${saveSession} onCancel=${()=>setSf(false)}/>`
+       :html`<button class="btn btn-primary" style="margin-bottom:16px" onclick=${()=>setSf(true)}>+ Log Strength Session</button>`}
+    ${!sf&&selSess?html`
+      <div style="font-size:11px;color:var(--mu);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.1em">Viewing: ${selSess.label}</div>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-val" style="color:var(--blue)">${calcTotalVol(selSess).toLocaleString()}</div><div class="stat-lbl">Vol kg</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--blue)">${selSess.blocks.length}</div><div class="stat-lbl">Exercises</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--blue)">${selSess.blocks.reduce(function(s,b){return s+b.sets.length;},0)}</div><div class="stat-lbl">Sets</div></div>
+      </div>
+      ${selSess.warmup?html`<div class="tag" style="margin-bottom:12px">🔥 ${selSess.warmup}</div>`:null}
+      ${selSess.blocks.map(function(bl){
+        var vol=calcVol(bl.sets),top=topWt(bl.sets);
+        var topSet=bl.sets.reduce(function(best,s){if(!s.weight||typeof s.reps!=='number')return best;var e=epley(s.weight,s.reps);return(!best||e>best.e1rm)?{e1rm:e,w:s.weight,r:s.reps}:best;},null);
+        return html`<div class="card">
+          <div class="card-hdr">
+            <span class="card-title" style="color:var(--blue)">${bl.name}</span>
+            <span style="font-size:11px;color:var(--mu)">${top>0?top+'kg · '+vol+'kg':''}${topSet?' · e1RM '+topSet.e1rm:''}</span>
+          </div>
+          <table class="tbl">
+            <thead><tr>
+              <th>Set</th>
+              ${bl.sets[0]&&bl.sets[0].weight!==null?html`<th>Weight</th>`:null}
+              <th>Reps</th><th>Vol</th>
+            </tr></thead>
+            <tbody>${bl.sets.map(function(s,si){return html`<tr>
+              <td style="color:var(--mu)">${si+1}</td>
+              ${s.weight!==null?html`<td style="font-weight:700">${s.weight}kg</td>`:null}
+              <td>${s.reps}</td>
+              <td style="color:var(--blue);font-weight:600">${s.weight&&typeof s.reps==='number'?s.weight*s.reps:'-'}</td>
+            </tr>`;})}
+            </tbody>
+          </table>
+        </div>`;
+      })}
+      <span class="section-lbl" style="margin-top:20px">History (${str.length})</span>
+      <div class="card">
+        ${str.map(function(s){return html`<div class="row ${sid===s.id?'selected':''}" onclick=${()=>setSid(s.id)}>
+          <div>
+            <div style="font-size:13px;font-weight:700">${s.label}</div>
+            <div style="font-size:11px;color:var(--mu);margin-top:2px">${s.blocks.length} exercises · ${s.blocks.reduce(function(a,b){return a+b.sets.length;},0)} sets</div>
+          </div>
+          <div style="font-size:13px;color:var(--blue);font-weight:700">${calcTotalVol(s).toLocaleString()} kg</div>
+        </div>`;})}
+      </div>
+    `:null}
+    ${!sf&&!selSess?html`<div style="text-align:center;padding:40px;color:var(--mu)">Tap + above to log your first session</div>`:null}
+  </div></div>`;
+}
+
+// ── CARDIO SCREEN ─────────────────────────────────────────────────────────────
+function CardioScreen(props){
+  var car=props.carSessions,setSessions=props.setSessions;
+  var showForm=useState(false);var sf=showForm[0];var setSf=showForm[1];
+  var selId=useState(null);var sid=selId[0];var setSid=selId[1];
+  var selSess=sid?car.find(function(s){return s.id===sid;}):car[0];
+
+  function saveSession(sess){
+    return dbPut('cardio',sess).then(function(){return queueSync('logCardio',sess);}).then(function(){
+      setSessions(function(p){return [sess].concat(p.filter(function(s){return s.id!==sess.id;})).sort(function(a,b){return a.date<b.date?1:-1;});});
+      setSid(sess.id);setSf(false);
+      drainSyncQueue();
+    });
+  }
+
+  return html`<div class="screen"><div class="screen-inner">
+    ${sf?html`<${CardioForm} onSave=${saveSession} onCancel=${()=>setSf(false)}/>`
+       :html`<button class="btn btn-primary" style="margin-bottom:16px" onclick=${()=>setSf(true)}>+ Log Cardio Session</button>`}
+    ${!sf&&selSess?html`
+      <div style="margin-bottom:14px">
+        <span class="pill" style="background:${hrCol(selSess.avgHR)}22;color:${hrCol(selSess.avgHR)};border:1px solid ${hrCol(selSess.avgHR)}66">Zone ${selSess.hrZone} · ${zoneName(selSess.hrZone)}</span>
+        <span class="tag">${selSess.type}</span>
+      </div>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-val" style="color:var(--blue)">${selSess.distanceKm}</div><div class="stat-lbl">km</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--blue)">${selSess.duration}</div><div class="stat-lbl">Time</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--red)">${selSess.avgHR}</div><div class="stat-lbl">Avg HR</div></div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-val" style="color:var(--green)">${selSess.elevationM}m</div><div class="stat-lbl">Elev</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--gold)">${selSess.totalKcal}</div><div class="stat-lbl">kcal</div></div>
+        <div class="stat"><div class="stat-val" style="color:var(--blue)">${selSess.effortScore}/10</div><div class="stat-lbl">${selSess.effortLabel}</div></div>
+      </div>
+      ${selSess.splits&&selSess.splits.length>0?html`<div class="card">
+        <div class="card-hdr"><span class="card-title">Splits</span></div>
+        <table class="tbl">
+          <thead><tr><th>km</th><th>Time</th><th>Pace</th><th>HR</th></tr></thead>
+          <tbody>${selSess.splits.map(function(sp){return html`<tr>
+            <td style="color:var(--mu)">${sp.km}</td>
+            <td style="font-weight:700">${sp.time}</td>
+            <td>${sp.pace}</td>
+            <td style="color:${hrCol(sp.hr)};font-weight:700">${sp.hr}</td>
+          </tr>`;})}
+          </tbody>
+        </table>
+      </div>`:null}
+      <span class="section-lbl" style="margin-top:20px">History (${car.length})</span>
+      <div class="card">
+        ${car.map(function(s){return html`<div class="row ${sid===s.id?'selected':''}" onclick=${()=>setSid(s.id)}>
+          <div>
+            <div style="font-size:13px;font-weight:700">${s.label}</div>
+            <div style="font-size:11px;color:var(--mu);margin-top:2px">${s.type} · ${s.distanceKm}km · Z${s.hrZone}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;color:var(--blue);font-weight:700">${s.duration}</div>
+            <div style="font-size:10px;color:var(--mu)">${s.avgHR} bpm</div>
+          </div>
+        </div>`;})}
+      </div>
+    `:null}
+    ${!sf&&!selSess?html`<div style="text-align:center;padding:40px;color:var(--mu)">Tap + above to log cardio</div>`:null}
+  </div></div>`;
+}
+
+// ── PROGRESS SCREEN ───────────────────────────────────────────────────────────
+function ProgressScreen(props){
+  var str=props.strSessions,car=props.carSessions;
+  
+  // Weekly volume trend
+  var weeks={};
+  str.forEach(function(s){
+    var d=new Date(s.date+'T12:00:00');
+    var wk=Math.floor((d-new Date('2026-03-30T12:00:00'))/(7*24*60*60*1000))+1;
+    weeks[wk]=(weeks[wk]||0)+calcTotalVol(s);
+  });
+  var wkNums=Object.keys(weeks).map(Number).sort(function(a,b){return a-b;});
+  var volData=wkNums.map(function(w){return weeks[w];});
+  var volLabels=wkNums.map(function(w){return 'W'+w;});
+
+  // Top loads per key lift
+  var keyLifts=['Bench Press','Bent Over Row','Military Press','Deadlift'];
+  var topLoads=keyLifts.map(function(lift){
+    var max=0;
+    str.forEach(function(s){s.blocks.forEach(function(b){if(b.name===lift){var t=topWt(b.sets);if(t>max)max=t;}});});
+    return{name:lift,top:max,e1rm:0};
+  });
+  // Epley best
+  topLoads.forEach(function(tl){
+    var best=0;
+    str.forEach(function(s){s.blocks.forEach(function(b){if(b.name===tl.name){b.sets.forEach(function(st){if(st.weight&&typeof st.reps==='number'){var e=epley(st.weight,st.reps);if(e>best)best=e;}});}});});
+    tl.e1rm=best;
+  });
+
+  var runSessions=car.filter(function(s){return s.type==='Run'});
+  var totalKm=car.reduce(function(a,s){return a+s.distanceKm;},0);
+
+  return html`<div class="screen"><div class="screen-inner">
+    <div style="font-size:20px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px">Your Progress</div>
+    <div style="font-size:11px;color:var(--mu);margin-bottom:18px;text-transform:uppercase;letter-spacing:0.12em">Week ${currentPlanWeek(str)} of 12</div>
+
+    <div class="card" style="padding:16px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:13px;font-weight:700">Weekly Volume Trend</span>
+        <span style="font-size:16px;font-weight:800;color:var(--blue)">${volData.length?volData[volData.length-1].toLocaleString():0} <span style="font-size:10px;color:var(--mu)">kg</span></span>
+      </div>
+      <${LineChart} data=${volData} labels=${volLabels} color="#00b4ff"/>
+    </div>
+
+    <div class="card" style="padding:16px;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px">Top Loads · Estimated 1RM</div>
+      ${topLoads.map(function(tl){
+        var pct=tl.e1rm?(tl.top/tl.e1rm)*100:0;
+        return html`<div style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+            <span>${tl.name}</span>
+            <span style="color:var(--blue);font-weight:700">${tl.top?tl.top+'kg':'—'}${tl.e1rm?' · e1RM '+tl.e1rm:''}</span>
+          </div>
+          <div class="pbar-bg"><div class="pbar" style="width:${Math.min(pct,100)}%;background:linear-gradient(90deg,var(--blue),#00e0ff)"></div></div>
+        </div>`;
+      })}
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-val" style="color:var(--green)">${totalKm.toFixed(1)}</div><div class="stat-lbl">Total km</div></div>
+      <div class="stat"><div class="stat-val" style="color:var(--red)">${runSessions.length}</div><div class="stat-lbl">Runs</div></div>
+      <div class="stat"><div class="stat-val" style="color:var(--gold)">${str.length}</div><div class="stat-lbl">Strength</div></div>
+    </div>
+
+    <div class="card" style="padding:16px;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px">Apple Watch / Health</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <div style="font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:0.1em">VO₂ Max</div>
+          <div style="font-size:28px;font-weight:800;color:var(--blue);margin-top:2px">36</div>
+          <div style="font-size:11px;color:var(--green)">↑ Trending up</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--mu);text-transform:uppercase;letter-spacing:0.1em">Training Load</div>
+          <div style="font-size:28px;font-weight:800;color:var(--green);margin-top:2px">+4%</div>
+          <div style="font-size:11px;color:var(--mu)">Steady · 7d vs 28d</div>
+        </div>
+      </div>
+    </div>
+  </div></div>`;
+}
+
+// ── PLAN SCREEN ───────────────────────────────────────────────────────────────
+function PlanScreen(props){
+  var str=props.strSessions;
+  var currentWk=currentPlanWeek(str);
+  var selWk=useState(currentWk);var sw=selWk[0];var setSw=selWk[1];
+  var planRow=PLAN[sw-1]||PLAN[0];
+  var blockCol={'B1':'var(--blue)','B2':'var(--blue)','B3':'var(--accent)','DL':'var(--orange)','TST':'var(--green)'};
+  var col=blockCol[planRow.block]||'var(--tx)';
+
+  return html`<div class="screen"><div class="screen-inner">
+    <div style="font-size:20px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px">12-Week Mesocycle</div>
+    <div style="font-size:11px;color:var(--mu);margin-bottom:18px;text-transform:uppercase;letter-spacing:0.12em">Currently on Week ${currentWk}</div>
+
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:16px">
+      ${PLAN.map(function(p){
+        var bc=blockCol[p.block]||'var(--tx)';
+        var isSel=p.wk===sw,isCur=p.wk===currentWk;
+        return html`<button onclick=${()=>setSw(p.wk)} style="padding:10px 0;border:1px solid ${isSel?bc:'var(--bd)'};border-radius:10px;background:${isSel?'rgba(0,180,255,0.1)':isCur?'rgba(0,180,255,0.04)':'var(--bg2)'};color:${isSel?bc:'var(--mu2)'};font-size:11px;font-weight:${isSel?'800':'500'};cursor:pointer;font-family:inherit">
+          <div>W${p.wk}</div>
+          <div style="font-size:9px;opacity:0.8;margin-top:2px">${p.block}</div>
+        </button>`;
+      })}
+    </div>
+
+    <div class="card" style="border-color:${col}44;margin-bottom:12px">
+      <div class="card-hdr" style="background:${col}11">
+        <div>
+          <div style="font-size:14px;font-weight:800">Week ${sw} · ${planRow.phase}</div>
+          <div style="font-size:11px;color:var(--mu);margin-top:2px">${planRow.note}</div>
+        </div>
+        <span class="pill" style="background:${col}22;color:${col};border:1px solid ${col}66">${planRow.block}</span>
+      </div>
+      ${[['Mon',planRow.mon],['Tue',planRow.tue],['Wed',planRow.wed],['Thu',planRow.thu],['Fri',planRow.fri],['Sat',planRow.sat],['Sun',planRow.sun]].map(function(item){
+        var isRest=item[1]==='Rest';
+        return html`<div style="padding:11px 16px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between">
+          <span style="font-size:12px;color:var(--mu);font-weight:700;width:36px">${item[0]}</span>
+          <span style="font-size:12px;color:${isRest?'var(--mu)':'var(--tx)'};flex:1;text-align:right">${item[1]}</span>
+        </div>`;
+      })}
+    </div>
+
+    <span class="section-lbl">Target Loads</span>
+    <div class="card" style="padding:12px 16px">
+      ${[['Bench Press',sw<=3?40:sw<=7?47.5:52.5,sw<=3?'4×8-10':sw<=7?'5×5':'3×3'],['Bent Over Row',sw<=3?57.5:sw<=7?67.5:75,sw<=3?'4×8-10':sw<=7?'5×5':'3×3'],['Military Press',sw<=3?30:sw<=7?35:38.75,sw<=3?'4×8-10':sw<=7?'5×5':'3×3'],['Deadlift',sw<=3?65:sw<=7?75:82.5,sw<=3?'4×8-10':sw<=7?'5×5':'3×3']].map(function(row){return html`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd)">
+        <span style="font-size:12px">${row[0]}</span>
+        <div style="text-align:right">
+          <span style="font-size:14px;font-weight:800;color:var(--blue)">${row[1]}kg</span>
+          <span style="font-size:10px;color:var(--mu);margin-left:8px">${row[2]}</span>
+        </div>
+      </div>`;})}
+    </div>
+  </div></div>`;
+}
+
+// ── SYNC SCREEN ───────────────────────────────────────────────────────────────
+function SyncScreen(props){
+  var cfg=getSyncConfig();
+  var urlS=useState(cfg.url||'');var url=urlS[0];var setUrl=urlS[1];
+  var keyS=useState(cfg.apiKey||'');var key=keyS[0];var setKey=keyS[1];
+  var msgS=useState('');var msg=msgS[0];var setMsg=msgS[1];
+  var msgTypeS=useState('info');var msgType=msgTypeS[0];var setMsgType=msgTypeS[1];
+  var syncingS=useState(false);var syncing=syncingS[0];var setSyncing=syncingS[1];
+  var qS=useState(0);var qCount=qS[0];var setQCount=qS[1];
+  var testingS=useState(false);var testing=testingS[0];var setTesting=testingS[1];
+
+  useEffect(function(){dbGetAll('syncQueue').then(function(q){setQCount(q.length);});},[]);
+
+  function showMsg(text,type){setMsg(text);setMsgType(type||'info');}
+
+  function save(){
+    setSyncConfig({url:url.trim(),apiKey:key.trim()});
+    showMsg('Settings saved','success');
+    setTimeout(function(){setMsg('');},2000);
+  }
+
+  function testConn(){
+    if(!url.trim()){showMsg('Enter URL first','error');return;}
+    setSyncConfig({url:url.trim(),apiKey:key.trim()});
+    setTesting(true);showMsg('Testing...','info');
+    testConnection({url:url.trim(),apiKey:key.trim()})
+      .then(function(){showMsg('Connection OK ✓ — URL and API key are working','success');})
+      .catch(function(e){showMsg('Failed: '+e.message,'error');})
+      .then(function(){setTesting(false);});
+  }
+
+  function syncNow(){
+    if(!url.trim()){showMsg('Enter URL first','error');return;}
+    setSyncing(true);showMsg('Syncing...','info');
+    setSyncConfig({url:url.trim(),apiKey:key.trim()});
+    drainSyncQueue(function(done,total){showMsg('Syncing '+done+'/'+total+'...','info');})
+      .then(function(result){
+        return dbGetAll('syncQueue').then(function(q){setQCount(q.length);return result;});
+      })
+      .then(function(r){
+        if(r.reason==='offline'){showMsg('Offline — will retry when you reconnect','error');}
+        else if(r.reason==='no_url'){showMsg('No URL configured','error');}
+        else if(r.total===0){showMsg('Nothing to sync','info');}
+        else if(r.failed===0){showMsg(r.synced+' synced ✓','success');}
+        else{showMsg(r.synced+' synced, '+r.failed+' failed'+(r.lastErr?' — '+r.lastErr:''),'error');}
+        setSyncing(false);
+      })
+      .catch(function(e){showMsg('Failed: '+e.message,'error');setSyncing(false);});
+  }
+
+  function seedAll(){
+    if(!url.trim()){showMsg('Enter URL first','error');return;}
+    setSyncing(true);showMsg('Queueing all sessions...','info');
+    setSyncConfig({url:url.trim(),apiKey:key.trim()});
+    var all=props.strSessions.map(function(s){return queueSync('logStrength',s);}).concat(props.carSessions.map(function(s){return queueSync('logCardio',s);}));
+    Promise.all(all).then(function(){return drainSyncQueue(function(d,t){showMsg('Syncing '+d+'/'+t+'...','info');});})
+      .then(function(r){
+        dbGetAll('syncQueue').then(function(q){setQCount(q.length);});
+        if(r.failed===0)showMsg(r.synced+' sessions sent to Sheets ✓','success');
+        else showMsg(r.synced+' sent, '+r.failed+' failed'+(r.lastErr?' — '+r.lastErr:''),'error');
+        setSyncing(false);
+      })
+      .catch(function(e){showMsg('Failed: '+e.message,'error');setSyncing(false);});
+  }
+
+  var online=navigator.onLine;
+  var statusDotColor=!online?'var(--red)':qCount>0?'var(--orange)':'var(--green)';
+  var statusText=!online?'Offline':qCount>0?qCount+' pending sync':'Synced';
+  var msgColor=msgType==='error'?'var(--red)':msgType==='success'?'var(--green)':'var(--blue)';
+  var msgBg=msgType==='error'?'rgba(248,113,113,0.1)':msgType==='success'?'rgba(74,222,128,0.1)':'rgba(0,180,255,0.1)';
+
+  return html`<div class="screen"><div class="screen-inner">
+    <div style="font-size:20px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px">Google Sheets Sync</div>
+    <div style="font-size:12px;color:var(--mu);margin-bottom:18px">Every session backs up automatically when online</div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:14px 16px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px">
+      <div class="sync-dot" style="background:${statusDotColor};box-shadow:0 0 8px ${statusDotColor}66"></div>
+      <span style="font-size:12px;color:${statusDotColor};font-weight:700;flex:1">${statusText}</span>
+      ${qCount>0?html`<span style="font-size:11px;color:var(--mu)">${qCount} item${qCount>1?'s':''}</span>`:null}
+    </div>
+
+    <div style="margin-bottom:12px">
+      <label class="lbl">Apps Script URL</label>
+      <input type="url" class="inp" value=${url} oninput=${(e)=>setUrl(e.target.value)} placeholder="https://script.google.com/macros/s/..."/>
+    </div>
+    <div style="margin-bottom:16px">
+      <label class="lbl">API Key</label>
+      <input type="text" class="inp" value=${key} oninput=${(e)=>setKey(e.target.value)} placeholder="Your secret key"/>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <button class="btn" style="background:var(--bg3);color:var(--tx);border:1px solid var(--bd)" onclick=${save}>Save</button>
+      <button class="btn" style="background:var(--bg3);color:var(--blue);border:1px solid rgba(0,180,255,0.3)" onclick=${testConn} disabled=${testing}>${testing?'Testing...':'Test Connection'}</button>
+    </div>
+    <button class="btn btn-primary" style="margin-bottom:10px;background:${syncing?'var(--bg3)':'linear-gradient(135deg,var(--blue),var(--blue2))'}" onclick=${syncNow} disabled=${syncing}>${syncing?'Syncing...':'Sync Pending ('+qCount+')'}</button>
+    <button class="btn" style="background:var(--bg3);color:var(--mu2);margin-bottom:14px" onclick=${seedAll} disabled=${syncing}>Send All Historical Data</button>
+
+    ${msg?html`<div style="color:${msgColor};font-size:12px;padding:12px 14px;background:${msgBg};border-radius:10px;border:1px solid ${msgColor}44;line-height:1.5">${msg}</div>`:null}
+
+    <div style="margin-top:20px;padding:14px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px">
+      <div style="font-size:11px;font-weight:700;color:var(--mu2);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px">Troubleshooting</div>
+      <div style="font-size:11px;color:var(--mu);line-height:1.7">
+        <strong style="color:var(--tx)">HTTP 401/Unauthorized:</strong> API key doesn't match. Check the <code style="background:var(--bg);padding:2px 6px;border-radius:4px">API_KEY</code> at the top of your Apps Script.<br>
+        <strong style="color:var(--tx)">HTTP 403:</strong> deployment isn't set to "Anyone" access.<br>
+        <strong style="color:var(--tx)">Network error:</strong> check your URL. It should end in <code style="background:var(--bg);padding:2px 6px;border-radius:4px">/exec</code>, not <code style="background:var(--bg);padding:2px 6px;border-radius:4px">/dev</code>.<br>
+        <strong style="color:var(--tx)">Failed items stay queued:</strong> fix the issue then tap Sync Pending again.
+      </div>
+    </div>
+  </div></div>`;
+}
+
+// ── BOTTOM NAV ────────────────────────────────────────────────────────────────
+// ── BODY SCREEN (Hydration + Composition) ───────────────────────────────────
+function BodyScreen(props){
+  var subS=useState('comp');var sub=subS[0];var setSub=subS[1];
+  
+  // Body comp state
+  var entriesS=useState([]);var entries=entriesS[0];var setEntries=entriesS[1];
+  var wS=useState('');var w=wS[0];var setW=wS[1];
+  var waistS=useState('');var waist=waistS[0];var setWaist=waistS[1];
+  var bfS=useState('');var bf=bfS[0];var setBf=bfS[1];
+  var noteS=useState('');var note=noteS[0];var setNote=noteS[1];
+  var saveMsgS=useState('');var saveMsg=saveMsgS[0];var setSaveMsg=saveMsgS[1];
+
+  // Hydration state
+  var preS=useState('');var pre=preS[0];var setPre=preS[1];
+  var postS=useState('');var post=postS[0];var setPost=postS[1];
+  var fluidS=useState('');var fluid=fluidS[0];var setFluid=fluidS[1];
+  var minsS=useState('');var mins=minsS[0];var setMins=minsS[1];
+
+  useEffect(function(){
+    dbGetAll('bodycomp').then(function(d){
+      setEntries(d.sort(function(a,b){return a.date<b.date?1:-1;}));
+    }).catch(function(){});
+  },[]);
+
+  function saveComp(){
+    setSaveMsg('');
+    if(!w){setSaveMsg('Weight required');return;}
+    var entry={id:uid(),date:todayISO(),label:fmtLabel(todayISO()),weight:parseFloat(w)||0,waist:parseFloat(waist)||null,bf:parseFloat(bf)||null,note:note.trim(),ts:Date.now()};
+    if(entry.bf){entry.lbm=Math.round((entry.weight*(100-entry.bf)/100)*10)/10;entry.fatMass=Math.round((entry.weight*entry.bf/100)*10)/10;}
+    dbPut('bodycomp',entry).then(function(){
+      return queueSync('logBodycomp',entry);
+    }).then(function(){
+      setEntries(function(p){return [entry].concat(p).sort(function(a,b){return a.date<b.date?1:-1;});});
+      setW('');setWaist('');setBf('');setNote('');
+      setSaveMsg('Saved ✓');
+      drainSyncQueue();
+      setTimeout(function(){setSaveMsg('');},2000);
+    }).catch(function(){setSaveMsg('Save failed');});
+  }
+
+  function saveHydration(){
+    if(!sweat)return;
+    var entry={id:uid(),date:todayISO(),pre:parseFloat(pre),post:parseFloat(post),fluid:parseInt(fluid)||0,mins:parseInt(mins),hourly:parseFloat(sweat.hourly),sodium:sweat.sodium,pctBw:parseFloat(sweat.pctBw)};
+    dbPut('hydration',entry).then(function(){return queueSync('logHydration',entry);}).then(function(){
+      drainSyncQueue();
+      setPre('');setPost('');setFluid('');setMins('');
+    }).catch(function(){});
+  }
+
+
+  // Sweat rate calc — live
+  var sweat=null;
+  if(pre&&post&&mins){
+    var lossKg=parseFloat(pre)-parseFloat(post);
+    var fluidL=(parseFloat(fluid)||0)/1000;
+    var totalLossL=lossKg+fluidL;
+    var hours=parseFloat(mins)/60;
+    if(hours>0&&totalLossL>=0){
+      var hourly=totalLossL/hours;
+      sweat={hourly:hourly.toFixed(2),sodium:Math.round(hourly*700),totalLoss:totalLossL.toFixed(2),pctBw:parseFloat(pre)>0?((lossKg/parseFloat(pre))*100).toFixed(1):0};
+    }
+  }
+
+  // Trend analysis
+  var latest=entries[0];
+  var earliest=entries[entries.length-1];
+  var weightDrop=null,pctDrop=null,risk='Low',riskColor='var(--green)';
+  if(entries.length>=2&&earliest.weight){
+    weightDrop=earliest.weight-latest.weight;
+    pctDrop=(weightDrop/earliest.weight)*100;
+    if(pctDrop>3){risk='High';riskColor='var(--red)';}
+    else if(pctDrop>1.5){risk='Moderate';riskColor='var(--orange)';}
+  }
+
+  return html`<div class="screen"><div class="screen-inner">
+    <div style="font-size:20px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px">Body</div>
+    <div style="font-size:11px;color:var(--mu);margin-bottom:16px;text-transform:uppercase;letter-spacing:0.12em">Composition & Hydration</div>
+
+    <div style="display:flex;gap:6px;background:var(--bg2);border:1px solid var(--bd);border-radius:12px;padding:4px;margin-bottom:16px">
+      <button onclick=${()=>setSub('comp')} style="flex:1;padding:10px;border:none;border-radius:9px;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;background:${sub==='comp'?'var(--blue)':'transparent'};color:${sub==='comp'?'#fff':'var(--mu2)'}">Composition</button>
+      <button onclick=${()=>setSub('hyd')} style="flex:1;padding:10px;border:none;border-radius:9px;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;background:${sub==='hyd'?'var(--blue)':'transparent'};color:${sub==='hyd'?'#fff':'var(--mu2)'}">Hydration</button>
+    </div>
+
+    ${sub==='comp'?html`
+      ${latest?html`<div class="stat-grid">
+        <div class="stat"><div class="stat-val" style="color:var(--blue)">${latest.weight}</div><div class="stat-lbl">kg current</div></div>
+        <div class="stat"><div class="stat-val" style="color:${latest.bf?'var(--blue)':'var(--mu)'}">${latest.bf?latest.bf+'%':'—'}</div><div class="stat-lbl">Body fat</div></div>
+        <div class="stat"><div class="stat-val" style="color:${latest.lbm?'var(--green)':'var(--mu)'}">${latest.lbm||'—'}</div><div class="stat-lbl">LBM kg</div></div>
+      </div>`:null}
+
+      ${risk!=='Low'?html`<div style="background:${risk==='High'?'rgba(248,113,113,0.1)':'rgba(251,146,60,0.1)'};border:1px solid ${riskColor}44;border-radius:12px;padding:14px;margin-bottom:14px">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <span style="font-size:20px">⚠</span>
+          <div>
+            <div style="font-size:11px;font-weight:800;color:${riskColor};text-transform:uppercase;letter-spacing:0.1em">Catabolic Risk: ${risk}</div>
+            <div style="font-size:12px;color:var(--mu2);margin-top:4px;line-height:1.5">Weight dropped ${weightDrop.toFixed(1)}kg (${pctDrop.toFixed(1)}%) since ${earliest.label}. ${risk==='High'?'Sustained >3% loss puts LBM at risk. Consider pulling back deficit, adding a refeed, or checking biofeedback.':'Approaching catabolic threshold. Monitor weekly trend and biofeedback scores.'}</div>
+          </div>
+        </div>
+      </div>`:null}
+
+      <div class="card" style="padding:16px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:12px">Log today's measurements</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+          <div><label class="lbl">Weight kg</label><input type="number" step="0.1" class="inp" value=${w} oninput=${(e)=>setW(e.target.value)} placeholder="80.0"/></div>
+          <div><label class="lbl">Waist cm</label><input type="number" step="0.1" class="inp" value=${waist} oninput=${(e)=>setWaist(e.target.value)} placeholder="82"/></div>
+          <div><label class="lbl">BF %</label><input type="number" step="0.1" class="inp" value=${bf} oninput=${(e)=>setBf(e.target.value)} placeholder="14"/></div>
+        </div>
+        <div style="margin-bottom:12px"><label class="lbl">Notes (optional)</label><input type="text" class="inp" value=${note} oninput=${(e)=>setNote(e.target.value)} placeholder="Morning, fasted, etc."/></div>
+        <button class="btn btn-primary" onclick=${saveComp}>Save Entry</button>
+        ${saveMsg?html`<div class="success" style="margin-top:10px">${saveMsg}</div>`:null}
+      </div>
+
+      ${entries.length?html`<span class="section-lbl">History (${entries.length})</span>
+      <div class="card">
+        ${entries.map(function(e){return html`<div style="padding:11px 14px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:12px;font-weight:700">${e.label}</div>
+            <div style="font-size:10px;color:var(--mu);margin-top:2px">${e.waist?'Waist '+e.waist+'cm · ':''}${e.bf?'BF '+e.bf+'% · LBM '+e.lbm+'kg':''}${e.note?' · '+e.note:''}</div>
+          </div>
+          <div style="font-size:14px;color:var(--blue);font-weight:800">${e.weight}kg</div>
+        </div>`;})}
+      </div>`:null}
+    `:null}
+
+    ${sub==='hyd'?html`
+      <div class="card" style="padding:16px;margin-bottom:14px">
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">Sweat Rate Calculator</div>
+        <div style="font-size:11px;color:var(--mu);margin-bottom:14px;line-height:1.5">Weigh yourself before and after a session. Higher accuracy if you track fluid intake during the session.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div><label class="lbl">Pre kg</label><input type="number" step="0.1" class="inp" value=${pre} oninput=${(e)=>setPre(e.target.value)} placeholder="80.0"/></div>
+          <div><label class="lbl">Post kg</label><input type="number" step="0.1" class="inp" value=${post} oninput=${(e)=>setPost(e.target.value)} placeholder="79.2"/></div>
+          <div><label class="lbl">Fluid ml</label><input type="number" class="inp" value=${fluid} oninput=${(e)=>setFluid(e.target.value)} placeholder="500"/></div>
+          <div><label class="lbl">Duration min</label><input type="number" class="inp" value=${mins} oninput=${(e)=>setMins(e.target.value)} placeholder="60"/></div>
+        </div>
+      </div>
+
+      ${sweat?html`<div class="card-hero" style="margin-bottom:14px">
+        <div style="font-size:10px;color:var(--blue);text-transform:uppercase;letter-spacing:0.15em;font-weight:700;margin-bottom:6px">Results</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <div style="font-size:28px;font-weight:800;color:var(--blue);letter-spacing:-0.02em">${sweat.hourly}<span style="font-size:14px;color:var(--mu);margin-left:4px">L/hr</span></div>
+            <div style="font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:0.1em;margin-top:2px">Sweat rate</div>
+          </div>
+          <div>
+            <div style="font-size:28px;font-weight:800;color:var(--gold);letter-spacing:-0.02em">${sweat.sodium}<span style="font-size:14px;color:var(--mu);margin-left:4px">mg</span></div>
+            <div style="font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:0.1em;margin-top:2px">Sodium/L target</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--mu2);margin-top:12px;padding-top:12px;border-top:1px solid var(--bd);line-height:1.5">
+          Total fluid loss: <strong style="color:var(--tx)">${sweat.totalLoss}L</strong> (${sweat.pctBw}% of body weight)${sweat.pctBw>2?' — performance starts dropping above 2%':''}
+        </div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick=${saveHydration}>Save & Sync Entry</button>
+      </div>`:null}
+
+      <div class="card" style="padding:14px">
+        <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--mu2)">How to use the numbers</div>
+        <div style="font-size:11px;color:var(--mu);line-height:1.6">
+          <strong style="color:var(--tx)">Replace during training:</strong> aim to drink at roughly your hourly sweat rate for sessions over 60 min.<br><br>
+          <strong style="color:var(--tx)">Sodium:</strong> 500–1000 mg/L is typical for most people. The 700 mg/L figure is a middle-of-the-range starting point — higher if you're a salty sweater (white streaks on kit).<br><br>
+          <strong style="color:var(--tx)">Body weight loss:</strong> stay under 2% during a session. Above that, endurance and strength both drop meaningfully.
+        </div>
+      </div>
+    `:null}
+  </div></div>`;
+}
+
+
+function Nav(props){
+  var tabs=[
+    {id:'home',icon:'🏠',label:'Home'},
+    {id:'strength',icon:'💪',label:'Str'},
+    {id:'cardio',icon:'🏃',label:'Car'},
+    {id:'plan',icon:'📋',label:'Plan'},
+    {id:'progress',icon:'📈',label:'Stats'},
+    {id:'body',icon:'⚖️',label:'Body'},
+    {id:'sync',icon:'☁️',label:'Sync'}
+  ];
+  return html`<nav class="nav">
+    ${tabs.map(function(t){return html`<button class="nav-btn ${props.tab===t.id?'active':''}" onclick=${()=>props.setTab(t.id)}>
+      <span class="nav-icon">${t.icon}</span>
+      <span>${t.label}</span>
+    </button>`;})}
+  </nav>`;
+}
+
+// ── MAIN APP ──────────────────────────────────────────────────────────────────
+function App(){
+  var tabS=useState('home');var tab=tabS[0];var setTab=tabS[1];
+  var strS=useState([]);var strSessions=strS[0];var setStrSessions=strS[1];
+  var carS=useState([]);var carSessions=carS[0];var setCarSessions=carS[1];
+  var readyS=useState(false);var ready=readyS[0];var setReady=readyS[1];
+
+  useEffect(function(){
+    if(navigator&&navigator.storage&&navigator.storage.persist){navigator.storage.persist();}
+    var strL=[],carL=[];
+    var p1=dbGetAll('strength').then(function(d){strL=d;}).catch(function(){strL=[];});
+    var p2=dbGetAll('cardio').then(function(d){carL=d;}).catch(function(){carL=[];});
+    Promise.all([p1,p2]).then(function(){
+      if(!strL.length){strL=SEED_STR.slice();return Promise.all(SEED_STR.map(function(s){return dbPut('strength',s);})).then(function(){});}
+    }).then(function(){
+      if(!carL.length){carL=SEED_CAR.slice();return Promise.all(SEED_CAR.map(function(s){return dbPut('cardio',s);})).then(function(){});}
+    }).then(function(){
+      var sortF=function(a,b){return a.date<b.date?1:-1;};
+      setStrSessions(strL.sort(sortF));
+      setCarSessions(carL.sort(sortF));
+      setReady(true);
+    });
+    function onOnline(){drainSyncQueue();}
+    window.addEventListener('online',onOnline);
+    document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&navigator.onLine)drainSyncQueue();});
+    return function(){window.removeEventListener('online',onOnline);};
+  },[]);
+
+  useEffect(function(){
+    if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}
+  },[]);
+
+  if(!ready){return html`<div style="display:flex;height:100vh;align-items:center;justify-content:center;background:var(--bg);color:var(--mu);font-size:12px;letter-spacing:0.2em">LOADING...</div>`;}
+
+  var streak=Math.min(99,strSessions.length+carSessions.length);
+
+  return html`<div style="height:100%;display:flex;flex-direction:column;background:var(--bg)">
+    <div class="hdr">
+      <div class="hdr-left">
+        <div class="hdr-logo">🏋️</div>
+        <div>
+          <div class="hdr-title">WEMYSSWORKOUTS</div>
+          <div class="hdr-sub">SGT WEMYSS</div>
+        </div>
+      </div>
+      <div class="hdr-streak">
+        <span class="flame">🔥</span>
+        <span class="hdr-streak-num">${streak}</span>
+      </div>
+    </div>
+    ${tab==='home'?html`<${HomeScreen} strSessions=${strSessions} carSessions=${carSessions}/>`:null}
+    ${tab==='strength'?html`<${StrengthScreen} strSessions=${strSessions} setSessions=${setStrSessions}/>`:null}
+    ${tab==='cardio'?html`<${CardioScreen} carSessions=${carSessions} setSessions=${setCarSessions}/>`:null}
+    ${tab==='plan'?html`<${PlanScreen} strSessions=${strSessions}/>`:null}
+    ${tab==='progress'?html`<${ProgressScreen} strSessions=${strSessions} carSessions=${carSessions}/>`:null}
+    ${tab==='body'?html`<${BodyScreen}/>`:null}
+    ${tab==='sync'?html`<${SyncScreen} strSessions=${strSessions} carSessions=${carSessions}/>`:null}
+    <${Nav} tab=${tab} setTab=${setTab}/>
+  </div>`;
+}
+
+render(html`<${App}/>`, document.getElementById('app'));
+</script>
+</body>
+</html>
