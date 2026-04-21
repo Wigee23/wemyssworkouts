@@ -80,8 +80,9 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
 .stat{background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:14px 10px;text-align:center;position:relative;overflow:hidden}
 .stat::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(74,168,255,0.5),transparent)}
-.stat-val{font-size:22px;font-weight:900;line-height:1;letter-spacing:-0.03em}
+.stat-val{font-size:20px;font-weight:900;line-height:1;letter-spacing:-0.03em}
 .stat-lbl{font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:0.1em;margin-top:5px;font-weight:600}
+.stat-grid .stat{padding:13px 8px}
 
 /* ── BUTTONS ─────────────────────────────────────────────────────────────── */
 .btn{width:100%;padding:14px;border:none;border-radius:13px;font-size:13px;font-weight:700;letter-spacing:0.03em;cursor:pointer;font-family:inherit;transition:all 0.18s}
@@ -208,6 +209,18 @@ function calcVol(sets){return sets.reduce(function(s,x){return s+(x.weight||0)*(
 function calcTotalVol(sess){return sess.blocks.reduce(function(a,b){return a+calcVol(b.sets);},0);}
 function topWt(sets){var w=sets.map(function(s){return s.weight||0;});return w.length?Math.max.apply(null,w):0;}
 function epley(weight,reps){if(!weight||typeof reps!=='number'||reps<1)return 0;return Math.round(weight*(1+reps/30));}
+function prescColor(pres){
+  if(!pres||pres==='Rest')return ['var(--mu)','transparent'];
+  if(/push|bench/i.test(pres))return ['var(--blue)','rgba(74,168,255,0.13)'];
+  if(/pull|row/i.test(pres))return ['var(--green)','rgba(52,211,153,0.11)'];
+  if(/z2|walk|hike/i.test(pres))return ['#22d3ee','rgba(34,211,238,0.11)'];
+  if(/run/i.test(pres))return ['var(--green)','rgba(52,211,153,0.11)'];
+  if(/leg|squat|kb|depletion|dep/i.test(pres))return ['var(--orange)','rgba(251,146,60,0.13)'];
+  if(/mobility/i.test(pres))return ['var(--purple)','rgba(167,139,250,0.13)'];
+  if(/light|deload/i.test(pres))return ['var(--gold)','rgba(251,191,36,0.13)'];
+  if(/tension|power|max|test/i.test(pres))return ['var(--red)','rgba(248,113,113,0.13)'];
+  return ['var(--mu2)','rgba(136,146,176,0.1)'];
+}
 
 // ── INDEXEDDB ─────────────────────────────────────────────────────────────────
 var _db=null;
@@ -366,29 +379,29 @@ function BodyMap(props){
   return html`
     <svg width="100%" height="380" viewBox="0 0 320 400" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto;max-width:280px">
       <!-- Silhouette -->
-      <ellipse cx="160" cy="55" rx="32" ry="34" fill="#1e2937"/>
-      <rect x="124" y="95" width="72" height="95" rx="14" fill="#1e2937"/>
-      <line x1="130" y1="108" x2="78" y2="180" stroke="#1e2937" stroke-width="26" stroke-linecap="round"/>
-      <line x1="190" y1="108" x2="242" y2="180" stroke="#1e2937" stroke-width="26" stroke-linecap="round"/>
-      <rect x="124" y="185" width="72" height="25" rx="6" fill="#1e2937"/>
-      <line x1="138" y1="210" x2="118" y2="320" stroke="#1e2937" stroke-width="28" stroke-linecap="round"/>
-      <line x1="182" y1="210" x2="202" y2="320" stroke="#1e2937" stroke-width="28" stroke-linecap="round"/>
-      <line x1="118" y1="320" x2="112" y2="375" stroke="#1e2937" stroke-width="22" stroke-linecap="round"/>
-      <line x1="202" y1="320" x2="208" y2="375" stroke="#1e2937" stroke-width="22" stroke-linecap="round"/>
+      <ellipse cx="160" cy="55" rx="32" ry="34" fill="var(--bg3)"/>
+      <rect x="124" y="95" width="72" height="95" rx="14" fill="var(--bg3)"/>
+      <line x1="130" y1="108" x2="78" y2="180" stroke="var(--bg3)" stroke-width="26" stroke-linecap="round"/>
+      <line x1="190" y1="108" x2="242" y2="180" stroke="var(--bg3)" stroke-width="26" stroke-linecap="round"/>
+      <rect x="124" y="185" width="72" height="25" rx="6" fill="var(--bg3)"/>
+      <line x1="138" y1="210" x2="118" y2="320" stroke="var(--bg3)" stroke-width="28" stroke-linecap="round"/>
+      <line x1="182" y1="210" x2="202" y2="320" stroke="var(--bg3)" stroke-width="28" stroke-linecap="round"/>
+      <line x1="118" y1="320" x2="112" y2="375" stroke="var(--bg3)" stroke-width="22" stroke-linecap="round"/>
+      <line x1="202" y1="320" x2="208" y2="375" stroke="var(--bg3)" stroke-width="22" stroke-linecap="round"/>
       
       <!-- Clickable target zones -->
-      <circle onclick=${()=>onSelect('shoulders')} cx="128" cy="108" r="16" class="body-part ${isActive('shoulders')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
-      <circle onclick=${()=>onSelect('shoulders')} cx="192" cy="108" r="16" class="body-part ${isActive('shoulders')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
-      <circle onclick=${()=>onSelect('chest')} cx="160" cy="125" r="22" class="body-part ${isActive('chest')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
-      <circle onclick=${()=>onSelect('arms')} cx="90" cy="155" r="16" class="body-part ${isActive('arms')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
-      <circle onclick=${()=>onSelect('arms')} cx="230" cy="155" r="16" class="body-part ${isActive('arms')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
-      <circle onclick=${()=>onSelect('core')} cx="160" cy="175" r="20" class="body-part ${isActive('core')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
-      <circle onclick=${()=>onSelect('back')} cx="160" cy="145" r="18" class="body-part ${isActive('back')?'active':''}" fill="rgba(0,180,255,0.05)" stroke="rgba(0,180,255,0.3)" stroke-width="2" stroke-dasharray="3,3"/>
-      <circle onclick=${()=>onSelect('glutes')} cx="160" cy="205" r="16" class="body-part ${isActive('glutes')?'active':''}" fill="rgba(0,180,255,0.05)" stroke="rgba(0,180,255,0.3)" stroke-width="2" stroke-dasharray="3,3"/>
-      <circle onclick=${()=>onSelect('quads')} cx="130" cy="260" r="16" class="body-part ${isActive('quads')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
-      <circle onclick=${()=>onSelect('quads')} cx="190" cy="260" r="16" class="body-part ${isActive('quads')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
-      <circle onclick=${()=>onSelect('calves')} cx="113" cy="350" r="12" class="body-part ${isActive('calves')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
-      <circle onclick=${()=>onSelect('calves')} cx="207" cy="350" r="12" class="body-part ${isActive('calves')?'active':''}" fill="rgba(0,180,255,0.08)" stroke="rgba(0,180,255,0.5)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('shoulders')} cx="128" cy="108" r="16" class="body-part ${isActive('shoulders')?'active':''}" fill="rgba(74,168,255,0.1)" stroke="rgba(74,168,255,0.55)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('shoulders')} cx="192" cy="108" r="16" class="body-part ${isActive('shoulders')?'active':''}" fill="rgba(74,168,255,0.1)" stroke="rgba(74,168,255,0.55)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('chest')} cx="160" cy="125" r="22" class="body-part ${isActive('chest')?'active':''}" fill="rgba(74,168,255,0.1)" stroke="rgba(74,168,255,0.55)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('arms')} cx="90" cy="155" r="16" class="body-part ${isActive('arms')?'active':''}" fill="rgba(74,168,255,0.1)" stroke="rgba(74,168,255,0.55)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('arms')} cx="230" cy="155" r="16" class="body-part ${isActive('arms')?'active':''}" fill="rgba(74,168,255,0.1)" stroke="rgba(74,168,255,0.55)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('core')} cx="160" cy="175" r="20" class="body-part ${isActive('core')?'active':''}" fill="rgba(74,168,255,0.1)" stroke="rgba(74,168,255,0.55)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('back')} cx="160" cy="145" r="18" class="body-part ${isActive('back')?'active':''}" fill="rgba(74,168,255,0.06)" stroke="rgba(74,168,255,0.35)" stroke-width="2" stroke-dasharray="4,3"/>
+      <circle onclick=${()=>onSelect('glutes')} cx="160" cy="205" r="16" class="body-part ${isActive('glutes')?'active':''}" fill="rgba(74,168,255,0.06)" stroke="rgba(74,168,255,0.35)" stroke-width="2" stroke-dasharray="4,3"/>
+      <circle onclick=${()=>onSelect('quads')} cx="130" cy="260" r="16" class="body-part ${isActive('quads')?'active':''}" fill="rgba(74,168,255,0.1)" stroke="rgba(74,168,255,0.55)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('quads')} cx="190" cy="260" r="16" class="body-part ${isActive('quads')?'active':''}" fill="rgba(74,168,255,0.1)" stroke="rgba(74,168,255,0.55)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('calves')} cx="113" cy="350" r="12" class="body-part ${isActive('calves')?'active':''}" fill="rgba(74,168,255,0.1)" stroke="rgba(74,168,255,0.55)" stroke-width="2"/>
+      <circle onclick=${()=>onSelect('calves')} cx="207" cy="350" r="12" class="body-part ${isActive('calves')?'active':''}" fill="rgba(74,168,255,0.1)" stroke="rgba(74,168,255,0.55)" stroke-width="2"/>
     </svg>`;
 }
 
@@ -544,10 +557,13 @@ function HomeScreen(props){
   var planRow=PLAN[planWk-1]||PLAN[0];
   var dow=['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
   var todayPrescription=planRow[dow]||'Rest';
+  var todayPc=prescColor(todayPrescription);
   var lastStr=str.length?str[0]:null;
   var lastCar=car.length?car[0]:null;
-  var weekVol=str.filter(function(s){var d=new Date(s.date+'T12:00:00'),now=new Date();return (now-d)<7*24*60*60*1000;}).reduce(function(a,s){return a+calcTotalVol(s);},0);
-  var weekKm=car.filter(function(s){var d=new Date(s.date+'T12:00:00'),now=new Date();return(now-d)<7*24*60*60*1000;}).reduce(function(a,s){return a+s.distanceKm;},0);
+  var now=new Date(),ms7=7*24*60*60*1000;
+  var weekVol=str.filter(function(s){return(now-new Date(s.date+'T12:00:00'))<ms7;}).reduce(function(a,s){return a+calcTotalVol(s);},0);
+  var weekKm=car.filter(function(s){return(now-new Date(s.date+'T12:00:00'))<ms7;}).reduce(function(a,s){return a+s.distanceKm;},0);
+  var weekSessions=str.filter(function(s){return(now-new Date(s.date+'T12:00:00'))<ms7;}).length+car.filter(function(s){return(now-new Date(s.date+'T12:00:00'))<ms7;}).length;
   var bodyState=useState(new Set());var selBody=bodyState[0];var setSelBody=bodyState[1];
   function toggleBody(part){setSelBody(function(p){var n=new Set(p);if(n.has(part))n.delete(part);else n.add(part);return n;});}
   var qCount=useState(0);var queueN=qCount[0];var setQueueN=qCount[1];
@@ -555,86 +571,157 @@ function HomeScreen(props){
   var syncCfg=getSyncConfig();
 
   function bodyRec(){
-    if(selBody.size===0)return 'Tap body parts for today\'s targeted exercises';
+    if(selBody.size===0)return 'Tap a muscle group to see today\'s recommended exercises';
     var recs=[];
     if(selBody.has('chest')||selBody.has('arms'))recs.push('Bench Press');
     if(selBody.has('shoulders'))recs.push('Military Press');
-    if(selBody.has('back'))recs.push('Bent Over Row, Deadlift');
-    if(selBody.has('core'))recs.push('Plank, Hanging Leg Raise');
+    if(selBody.has('back'))recs.push('Bent Over Row · Deadlift');
+    if(selBody.has('core'))recs.push('Plank · Hanging Leg Raise');
     if(selBody.has('glutes')||selBody.has('quads'))recs.push('Bulgarian Split Squat');
     if(selBody.has('calves'))recs.push('Calf Raises');
     return recs.length?recs.join(' · '):'No specific exercises for this area today';
   }
 
   return html`<div class="screen"><div class="screen-inner">
-    <div class="card-hero">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
-        <div>
-          <div style="font-size:10px;color:var(--blue);text-transform:uppercase;letter-spacing:0.15em;font-weight:700;margin-bottom:4px">WEEK ${planWk} OF 12 · ${planRow.phase}</div>
-          <div style="font-size:22px;font-weight:800;letter-spacing:-0.02em">${todayPrescription}</div>
-          <div style="font-size:12px;color:var(--mu2);margin-top:2px">${planRow.note}</div>
+
+    <!-- ── HERO PLAN CARD ── -->
+    <div class="card-hero" style="padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:10px;color:var(--blue);text-transform:uppercase;letter-spacing:0.18em;font-weight:700;margin-bottom:7px">WEEK ${planWk} OF 12 · ${planRow.phase}</div>
+          <div style="font-size:26px;font-weight:900;letter-spacing:-0.03em;line-height:1.1;margin-bottom:5px">${todayPrescription}</div>
+          <div style="font-size:12px;color:var(--mu2);line-height:1.4">${planRow.note}</div>
         </div>
-        <div style="font-size:28px">🔥</div>
+        <div style="background:rgba(74,168,255,0.1);border:1px solid rgba(74,168,255,0.22);border-radius:16px;padding:12px 14px;text-align:center;margin-left:14px;flex-shrink:0">
+          <div style="font-size:26px;font-weight:900;color:var(--blue);line-height:1;letter-spacing:-0.03em">${planWk}</div>
+          <div style="font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:0.12em;margin-top:3px;font-weight:600">week</div>
+        </div>
       </div>
-      <div class="pbar-bg" style="margin-top:12px"><div class="pbar" style="width:${(planWk/12)*100}%;background:linear-gradient(90deg,var(--blue),#00e0ff)"></div></div>
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--mu);margin-top:6px"><span>Start</span><span>${planWk}/12 weeks</span><span>Test</span></div>
+      <div class="pbar-bg" style="height:8px;border-radius:4px">
+        <div class="pbar" style="width:${(planWk/12)*100}%;background:linear-gradient(90deg,var(--blue),#22d3ee);height:8px;border-radius:4px;box-shadow:0 0 10px rgba(74,168,255,0.4)"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--mu);margin-top:7px;font-weight:500">
+        <span>Week 1</span>
+        <span style="color:var(--blue);font-weight:700">${planWk} / 12</span>
+        <span>Testing</span>
+      </div>
     </div>
 
+    <!-- ── SYNC BANNER ── -->
     ${queueN>0&&syncCfg.url?html`
-      <div style="background:rgba(251,146,60,0.12);border:1px solid rgba(251,146,60,0.3);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:12px;color:var(--orange);font-weight:600">☁ ${queueN} session${queueN>1?'s':''} waiting to sync</span>
-        <button class="btn-sm" style="background:var(--orange);color:#000" onclick=${()=>{drainSyncQueue().then(function(){dbGetAll('syncQueue').then(function(q){setQueueN(q.length);});});}}>Sync</button>
+      <div style="background:rgba(251,146,60,0.1);border:1px solid rgba(251,146,60,0.28);border-radius:14px;padding:11px 16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px">☁️</span>
+          <span style="font-size:12px;color:var(--orange);font-weight:600">${queueN} session${queueN>1?'s':''} pending sync</span>
+        </div>
+        <button class="btn-sm" style="background:var(--orange);color:#000;font-weight:700;padding:6px 14px"
+          onclick=${()=>{drainSyncQueue().then(function(){dbGetAll('syncQueue').then(function(q){setQueueN(q.length);});});}}>Sync now</button>
       </div>`:null}
 
+    <!-- ── WEEKLY STATS ── -->
     <div class="stat-grid">
-      <div class="stat"><div class="stat-val" style="color:var(--blue)">${weekVol?weekVol.toLocaleString():'0'}</div><div class="stat-lbl">kg · week</div></div>
-      <div class="stat"><div class="stat-val" style="color:var(--green)">${weekKm.toFixed(1)}</div><div class="stat-lbl">km · week</div></div>
-      <div class="stat"><div class="stat-val" style="color:var(--gold)">${str.length+car.length}</div><div class="stat-lbl">sessions</div></div>
+      <div class="stat">
+        <div style="font-size:15px;margin-bottom:5px">🏋️</div>
+        <div class="stat-val" style="color:var(--blue)">${weekVol?weekVol.toLocaleString():'—'}</div>
+        <div class="stat-lbl">kg lifted</div>
+      </div>
+      <div class="stat">
+        <div style="font-size:15px;margin-bottom:5px">🏃</div>
+        <div class="stat-val" style="color:var(--green)">${weekKm.toFixed(1)}</div>
+        <div class="stat-lbl">km run</div>
+      </div>
+      <div class="stat">
+        <div style="font-size:15px;margin-bottom:5px">✅</div>
+        <div class="stat-val" style="color:var(--gold)">${weekSessions}</div>
+        <div class="stat-lbl">this week</div>
+      </div>
     </div>
 
-    <span class="section-lbl">Focus Areas</span>
-    <div class="body-map">
+    <!-- ── BODY MAP ── -->
+    <span class="section-lbl">Target Muscle Group</span>
+    <div class="body-map" style="padding:20px 12px 14px">
       <${BodyMap} selected=${selBody} onSelect=${toggleBody}/>
-      <div style="text-align:center;font-size:12px;color:var(--mu2);margin-top:8px;min-height:32px;padding:0 10px">${bodyRec()}</div>
+      <div style="text-align:center;font-size:12px;color:${selBody.size?'var(--blue)':'var(--mu)'};margin-top:10px;min-height:32px;padding:0 10px;line-height:1.55;font-weight:${selBody.size?'600':'400'}">${bodyRec()}</div>
     </div>
 
-    ${lastStr?html`<div class="card">
-      <div class="card-hdr"><span class="card-title">Last Strength</span><span style="font-size:11px;color:var(--mu)">${lastStr.label}</span></div>
-      <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="font-size:13px;color:var(--tx);font-weight:600">${lastStr.blocks.length} exercises</div>
-          <div style="font-size:11px;color:var(--mu)">${lastStr.blocks.reduce(function(a,b){return a+b.sets.length;},0)} sets</div>
+    <!-- ── LAST STRENGTH ── -->
+    ${lastStr?html`
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-hdr" style="padding:13px 16px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:16px">💪</span>
+          <span class="card-title">Last Strength</span>
         </div>
-        <div style="font-size:20px;font-weight:800;color:var(--blue)">${calcTotalVol(lastStr).toLocaleString()} <span style="font-size:11px;color:var(--mu)">kg</span></div>
+        <span style="font-size:11px;color:var(--mu);font-weight:500">${lastStr.label}</span>
+      </div>
+      <div style="padding:14px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+          <div>
+            <div style="font-size:22px;font-weight:900;color:var(--blue);letter-spacing:-0.03em;line-height:1">${calcTotalVol(lastStr).toLocaleString()}<span style="font-size:12px;color:var(--mu);margin-left:4px;font-weight:400">kg</span></div>
+            <div style="font-size:11px;color:var(--mu);margin-top:3px">${lastStr.blocks.length} exercises · ${lastStr.blocks.reduce(function(a,b){return a+b.sets.length;},0)} sets</div>
+          </div>
+          ${lastStr.warmup?html`<span style="font-size:10px;color:var(--mu2);background:var(--bg3);border:1px solid var(--bd);border-radius:8px;padding:4px 10px;max-width:140px;text-align:right;line-height:1.4">🔥 ${lastStr.warmup}</span>`:null}
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">
+          ${lastStr.blocks.slice(0,4).map(function(b){return html`<span style="background:rgba(74,168,255,0.1);color:var(--blue);border:1px solid rgba(74,168,255,0.22);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:600">${b.name}</span>`;})}
+          ${lastStr.blocks.length>4?html`<span style="background:var(--bg3);color:var(--mu);border:1px solid var(--bd);border-radius:20px;padding:4px 11px;font-size:11px">+${lastStr.blocks.length-4}</span>`:null}
+        </div>
       </div>
     </div>`:null}
 
-    ${lastCar?html`<div class="card">
-      <div class="card-hdr"><span class="card-title">Last Cardio</span><span style="font-size:11px;color:var(--mu)">${lastCar.label}</span></div>
-      <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <span class="pill" style="background:${hrCol(lastCar.avgHR)}22;color:${hrCol(lastCar.avgHR)};border:1px solid ${hrCol(lastCar.avgHR)}66">Z${lastCar.hrZone}</span>
-          <span style="font-size:12px;color:var(--mu2)">${lastCar.type}</span>
+    <!-- ── LAST CARDIO ── -->
+    ${lastCar?html`
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-hdr" style="padding:13px 16px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:16px">🏃</span>
+          <span class="card-title">Last Cardio</span>
         </div>
-        <div style="text-align:right">
-          <div style="font-size:15px;font-weight:700;color:var(--blue)">${lastCar.duration}</div>
-          <div style="font-size:11px;color:var(--mu)">${lastCar.avgHR} bpm · ${lastCar.distanceKm}km</div>
+        <span style="font-size:11px;color:var(--mu);font-weight:500">${lastCar.label}</span>
+      </div>
+      <div style="padding:14px 16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div>
+            <span style="background:${hrCol(lastCar.avgHR)}20;color:${hrCol(lastCar.avgHR)};border:1px solid ${hrCol(lastCar.avgHR)}50;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;margin-bottom:6px;display:inline-block">Z${lastCar.hrZone} · ${zoneName(lastCar.hrZone)}</span>
+            <div style="font-size:12px;color:var(--mu2)">${lastCar.type}</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:24px;font-weight:900;color:var(--tx);letter-spacing:-0.03em;line-height:1">${lastCar.duration}</div>
+            <div style="font-size:11px;color:var(--mu);margin-top:2px">${lastCar.avgHR} bpm · ${lastCar.distanceKm}km</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:3px;border-radius:4px;overflow:hidden;height:5px">
+          ${[1,2,3,4,5].map(function(z){
+            var zCol=z<=1?'var(--green)':z<=2?'var(--blue)':z<=3?'var(--gold)':z<=4?'var(--orange)':'var(--red)';
+            return html`<div style="flex:1;background:${z<=lastCar.hrZone?zCol:'var(--bg3)'}"></div>`;
+          })}
+        </div>
+        <div style="display:flex;gap:2px;margin-top:4px">
+          ${['Z1','Z2','Z3','Z4','Z5'].map(function(l,i){return html`<div style="flex:1;font-size:8px;color:${i+1<=lastCar.hrZone?'var(--mu2)':'var(--mu)'};text-align:center">${l}</div>`;})}
         </div>
       </div>
     </div>`:null}
 
-    <span class="section-lbl" style="margin-top:16px">This Week</span>
+    <!-- ── THIS WEEK SCHEDULE ── -->
+    <span class="section-lbl" style="margin-top:4px">This Week · ${planRow.phase}</span>
     <div class="card">
       ${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(function(day,i){
         var keys=['mon','tue','wed','thu','fri','sat','sun'];
         var pres=planRow[keys[i]]||'Rest';
         var isToday=i===((new Date().getDay()+6)%7);
-        return html`<div style="padding:11px 16px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;background:${isToday?'rgba(0,180,255,0.06)':'transparent'}">
-          <span style="font-size:12px;color:${isToday?'var(--blue)':'var(--mu)'};font-weight:${isToday?'700':'500'};width:40px">${day}${isToday?' •':''}</span>
-          <span style="font-size:12px;color:${pres==='Rest'?'var(--mu)':'var(--tx)'};font-weight:500">${pres}</span>
+        var pc=prescColor(pres);
+        return html`<div style="padding:11px 16px;border-bottom:${i<6?'1px solid var(--bd)':'none'};display:flex;justify-content:space-between;align-items:center;background:${isToday?'rgba(74,168,255,0.05)':'transparent'}">
+          <div style="display:flex;align-items:center;gap:10px">
+            ${isToday
+              ?html`<div style="width:6px;height:6px;border-radius:50%;background:var(--blue);box-shadow:0 0 7px var(--blue-glow);flex-shrink:0"></div>`
+              :html`<div style="width:6px;height:6px;flex-shrink:0"></div>`}
+            <span style="font-size:12px;font-weight:${isToday?'800':'500'};color:${isToday?'var(--tx)':'var(--mu2)'};width:30px">${day}</span>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:${pc[0]};background:${pc[1]};padding:4px 13px;border-radius:20px;max-width:220px;text-align:right">${pres}</span>
         </div>`;
       })}
     </div>
+
   </div></div>`;
 }
 
