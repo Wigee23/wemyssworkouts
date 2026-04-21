@@ -1014,7 +1014,7 @@ function BodyScreen(props){
     dbPut('hydration',entry).then(function(){return queueSync('logHydration',entry);}).then(function(){
       drainSyncQueue();
       setPre('');setPost('');setFluid('');setMins('');
-    }).catch(function(){showMsg('Save failed — check storage');});
+    }).catch(function(){setSaveMsg('Save failed — check storage');});
   }
 
 
