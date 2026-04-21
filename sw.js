@@ -1,4 +1,4 @@
-const CACHE = 'ww-v2';
+const CACHE = 'ww-v3';
 const CDN = [
   'https://esm.sh/preact@10.23.1',
   'https://esm.sh/preact@10.23.1/hooks',
