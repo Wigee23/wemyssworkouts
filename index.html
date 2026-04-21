@@ -1375,6 +1375,7 @@ function App(){
   var strS=useState([]);var strSessions=strS[0];var setStrSessions=strS[1];
   var carS=useState([]);var carSessions=carS[0];var setCarSessions=carS[1];
   var readyS=useState(false);var ready=readyS[0];var setReady=readyS[1];
+  var warnS=useState(false);var storageWarn=warnS[0];var setStorageWarn=warnS[1];
 
   useEffect(function(){
     if(navigator&&navigator.storage&&navigator.storage.persist){navigator.storage.persist();}
@@ -1382,25 +1383,33 @@ function App(){
     var p1=dbGetAll('strength').then(function(d){strL=d;}).catch(function(){strL=[];});
     var p2=dbGetAll('cardio').then(function(d){carL=d;}).catch(function(){carL=[];});
     Promise.all([p1,p2]).then(function(){
-      if(!strL.length){strL=SEED_STR.slice();return Promise.all(SEED_STR.map(function(s){return dbPut('strength',s).catch(function(){});}));}
+      if(!strL.length){strL=SEED_STR.slice();return Promise.all(SEED_STR.map(function(s){return dbPut('strength',s).catch(function(){setStorageWarn(true);});}));}
     }).then(function(){
-      if(!carL.length){carL=SEED_CAR.slice();return Promise.all(SEED_CAR.map(function(s){return dbPut('cardio',s).catch(function(){});}));}
+      if(!carL.length){carL=SEED_CAR.slice();return Promise.all(SEED_CAR.map(function(s){return dbPut('cardio',s).catch(function(){setStorageWarn(true);});}));}
     }).then(function(){
       var sortF=function(a,b){return a.date<b.date?1:-1;};
       setStrSessions(strL.sort(sortF));
       setCarSessions(carL.sort(sortF));
       setReady(true);
     }).catch(function(){
+      var sortF=function(a,b){return a.date<b.date?1:-1;};
+      setStrSessions(strL.sort(sortF));
+      setCarSessions(carL.sort(sortF));
+      setStorageWarn(true);
       setReady(true);
     });
     function onOnline(){drainSyncQueue();}
+    function onVisible(){if(document.visibilityState==='visible'&&navigator.onLine)drainSyncQueue();}
     window.addEventListener('online',onOnline);
-    document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&navigator.onLine)drainSyncQueue();});
-    return function(){window.removeEventListener('online',onOnline);};
+    document.addEventListener('visibilitychange',onVisible);
+    return function(){
+      window.removeEventListener('online',onOnline);
+      document.removeEventListener('visibilitychange',onVisible);
+    };
   },[]);
 
   useEffect(function(){
-    if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(){});}
+    if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(function(e){console.warn('SW registration failed:',e);});}
   },[]);
 
   if(!ready){return html`<div class="loading-screen"><div class="loading-logo">🏋️</div><div class="loading-dots"><span/><span/><span/></div></div>`;}
@@ -1421,6 +1430,7 @@ function App(){
         <span class="hdr-streak-num">${streak}</span>
       </div>
     </div>
+    ${storageWarn?html`<div style="background:#7c2d12;color:#fef2f2;font-size:11px;text-align:center;padding:6px 12px">Storage unavailable — data won't be saved between sessions.</div>`:null}
     ${tab==='home'?html`<${HomeScreen} strSessions=${strSessions} carSessions=${carSessions}/>`:null}
     ${tab==='strength'?html`<${StrengthScreen} strSessions=${strSessions} setSessions=${setStrSessions}/>`:null}
     ${tab==='cardio'?html`<${CardioScreen} carSessions=${carSessions} setSessions=${setCarSessions}/>`:null}
