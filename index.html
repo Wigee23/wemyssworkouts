@@ -1415,7 +1415,7 @@ function App(){
   },[]);
 
   useEffect(function(){
-    if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(function(e){console.warn('SW registration failed:',e);});}
+    if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(regs){regs.forEach(function(r){r.unregister();});});}
   },[]);
 
   if(!ready){return html`<div class="loading-screen"><div class="loading-logo">🏋️</div><div class="loading-dots"><span/><span/><span/></div></div>`;}
