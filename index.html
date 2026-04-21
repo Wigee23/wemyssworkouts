@@ -10,6 +10,9 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>WemyssWorkouts</title>
+<link rel="modulepreload" href="https://esm.sh/preact@10.23.1">
+<link rel="modulepreload" href="https://esm.sh/preact@10.23.1/hooks">
+<link rel="modulepreload" href="https://esm.sh/htm@3.1.1/preact?external=preact">
 <style>
 /* ── RESET ───────────────────────────────────────────────────────────────── */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -199,6 +202,27 @@ select.inp option{background:#0d1a2e;color:var(--tx)}
 </head>
 <body>
 <div id="app"><div class="loading-screen"><div class="loading-logo">🏋️</div><div class="loading-dots"><span></span><span></span><span></span></div></div></div>
+<script>
+(function(){
+  var t=setTimeout(function(){
+    var a=document.getElementById('app');
+    if(a&&a.querySelector('.loading-screen')){
+      var d=document.createElement('div');
+      d.style.cssText='position:fixed;bottom:48px;left:0;right:0;text-align:center;font-family:system-ui,sans-serif;font-size:13px;color:rgba(122,136,170,0.9)';
+      d.innerHTML='<a href="" onclick="location.reload();return false;" style="color:#00b4ff;text-decoration:none;padding:10px 22px;border:1px solid rgba(0,180,255,0.3);border-radius:20px;display:inline-block">Taking too long — tap to reload</a>';
+      document.body.appendChild(d);
+    }
+  },9000);
+  document.addEventListener('DOMContentLoaded',function(){
+    var observer=new MutationObserver(function(){
+      if(document.getElementById('app')&&!document.getElementById('app').querySelector('.loading-screen')){
+        clearTimeout(t);observer.disconnect();
+      }
+    });
+    observer.observe(document.getElementById('app')||document.body,{childList:true,subtree:true});
+  });
+})();
+</script>
 <script type="module">
 import { h, render } from 'https://esm.sh/preact@10.23.1';
 import { useState, useEffect, useRef } from 'https://esm.sh/preact@10.23.1/hooks';
