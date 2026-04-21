@@ -33,7 +33,7 @@ self.addEventListener('fetch', e => {
         }
         return res;
       }).catch(() => {
-        if (e.request.mode === 'navigate') return caches.match('/');
+        if (e.request.mode === 'navigate') return caches.match(self.registration.scope);
         return null;
       });
     })
